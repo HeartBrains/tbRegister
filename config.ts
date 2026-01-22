@@ -1,5 +1,5 @@
 
-export const API_BASE_URL = 'https://staging.tbim.appbkk.com/wp-json';
+export const API_BASE_URL = 'https://tbim.appbkk.com/wp-json';
 
 export const API_ENDPOINTS = {
   // Validation Endpoints
