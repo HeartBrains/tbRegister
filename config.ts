@@ -1,5 +1,6 @@
 
 export const API_BASE_URL = 'https://tbim.appbkk.com/wp-json';
+export const HOME_URL = 'https://tbim.appbkk.com';
 
 export const API_ENDPOINTS = {
   // Validation Endpoints

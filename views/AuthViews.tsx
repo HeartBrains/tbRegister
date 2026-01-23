@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { ViewState } from '../types';
+import { HOME_URL } from '../config';
 
 interface AuthProps {
   setView: (view: ViewState) => void;
@@ -39,19 +40,17 @@ export const Success: React.FC<AuthProps> = ({ setView, isForeign }) => {
                    : 'เจ้าหน้าที่จะดำเนินการตรวจสอบข้อมูลสมาชิกและแจ้งผลการอนุมัติทางอีเมลภายใน 7 วันทำการ เพื่อให้ท่านสามารถลงชื่อเข้าใช้งานระบบได้'
                  }
                </p>
-               {isForeign && <p className="text-xs text-slate-400 mt-4 italic font-medium">* This registration is a simulation for demonstration purposes.</p>}
-               {!isForeign && <p className="text-xs text-slate-400 mt-4 italic font-medium">* การลงทะเบียนนี้เป็นเพียงการจำลองเพื่อการนำเสนอ</p>}
              </div>
           </div>
         </div>
         
-        <button 
-          onClick={() => setView(ViewState.LANDING)} 
+        <a 
+          href={HOME_URL} 
           className="w-full py-4 bg-slate-900 text-white rounded-2xl font-bold hover:bg-slate-800 transition-all shadow-lg text-lg flex items-center justify-center gap-2"
         >
           {isForeign ? 'Back to Home' : 'กลับสู่หน้าหลัก'}
           <span className="material-symbols-outlined">home</span>
-        </button>
+        </a>
       </div>
     </div>
   );
