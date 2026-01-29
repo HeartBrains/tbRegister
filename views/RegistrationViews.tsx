@@ -530,6 +530,7 @@ export const RegisterLocal: React.FC<RegProps> = ({ setView, onSuccess }) => {
     education_status: 'professional', workplace_name: '', position: '', job_nature: 'design', work_address: '',
     degree: '', faculty: '', major: '', year_of_entry: '', institution: '', student_id: '',
     student_id_card: null as File | null,
+    company_certificate: null as File | null,
     security_question: '', security_answer: '', password: '', confirm_password: '', pdpa_consent: false
   });
 
@@ -638,6 +639,20 @@ export const RegisterLocal: React.FC<RegProps> = ({ setView, onSuccess }) => {
         const newFileName = `student_id_card_${cleanFName}_${cleanLName}_${formData.student_id_card.name}`;
         const renamedFile = new File([formData.student_id_card], newFileName, { type: formData.student_id_card.type });
         payload.append('student_id_card', renamedFile);
+      }
+
+      if (formData.company_certificate) {
+        const workplace = formData.workplace_name || 'workplace';
+        const fName = formData.first_name || 'firstname';
+        const lName = formData.last_name || 'lastname';
+        
+        const cleanWorkplace = workplace.trim().replace(/[^a-zA-Z0-9ก-๙]/g, '');
+        const cleanFName = fName.trim().replace(/[^a-zA-Z0-9ก-๙]/g, '');
+        const cleanLName = lName.trim().replace(/[^a-zA-Z0-9ก-๙]/g, '');
+        
+        const newFileName = `${cleanWorkplace}_work-certificate_${cleanFName}_${cleanLName}_${formData.company_certificate.name}`;
+        const renamedFile = new File([formData.company_certificate], newFileName, { type: formData.company_certificate.type });
+        payload.append('company_certificate', renamedFile);
       }
 
       const response = await fetch(API_ENDPOINTS.REGISTER_LOCAL, {
@@ -784,6 +799,17 @@ export const RegisterLocal: React.FC<RegProps> = ({ setView, onSuccess }) => {
                       <label className="block text-sm font-medium text-slate-700 mb-1">ที่อยู่ที่ทำงาน <span className="text-red-500">*</span></label>
                       <textarea name="work_address" rows={2} required value={formData.work_address} onChange={handleChange} className="block w-full rounded-xl border-slate-200 p-3 border bg-slate-50 outline-none focus:ring-2 focus:ring-primary-500"></textarea>
                     </div>
+                    <div className="sm:col-span-2">
+                      <label className="block text-sm font-medium text-slate-700 mb-1">หนังสือรับรองการทำงาน / บัตรพนักงาน (Work/Company Certificate) <span className="text-red-500">*</span> <span className="text-slate-400 text-xs font-normal">(Max 10MB - PDF, Doc, Image, Zip)</span></label>
+                      <input 
+                        name="company_certificate" 
+                        type="file" 
+                        required 
+                        accept=".jpg,.jpeg,.png,.pdf,.doc,.docx,.zip"
+                        onChange={handleChange} 
+                        className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100 transition-all cursor-pointer" 
+                      />
+                    </div>
                   </div>
                 ) : (
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 animate-in fade-in duration-500">
@@ -812,8 +838,15 @@ export const RegisterLocal: React.FC<RegProps> = ({ setView, onSuccess }) => {
                       <input name="student_id" type="text" required value={formData.student_id} onChange={handleChange} className="block w-full rounded-xl border-slate-200 p-3 border bg-slate-50 outline-none focus:ring-2 focus:ring-primary-500" />
                     </div>
                     <div className="sm:col-span-2">
-                      <label className="block text-sm font-medium text-slate-700 mb-1">รูปบัตรประจำตัวนักศึกษา (ID Card Image) <span className="text-red-500">*</span> <span className="text-slate-400 text-xs font-normal">(Max 10MB)</span></label>
-                      <input name="student_id_card" type="file" required onChange={handleChange} className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100 transition-all cursor-pointer" />
+                      <label className="block text-sm font-medium text-slate-700 mb-1">รูปบัตรประจำตัวนักศึกษา (ID Card Image) <span className="text-red-500">*</span> <span className="text-slate-400 text-xs font-normal">(Max 10MB - PDF, Doc, Image, Zip)</span></label>
+                      <input 
+                        name="student_id_card" 
+                        type="file" 
+                        required 
+                        accept=".jpg,.jpeg,.png,.pdf,.doc,.docx,.zip"
+                        onChange={handleChange} 
+                        className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100 transition-all cursor-pointer" 
+                      />
                     </div>
                   </div>
                 )}
@@ -1371,8 +1404,15 @@ export const RegisterCorporate: React.FC<RegProps> = ({ setView, onSuccess }) =>
                   <textarea name="corporate-address" rows={2} value={formData['corporate-address']} onChange={handleChange} required className="block w-full rounded-xl border-slate-200 p-3 border bg-slate-50 outline-none focus:ring-2 focus:ring-blue-500 transition-all"></textarea>
                 </div>
                 <div className="sm:col-span-2">
-                  <label className="block text-sm font-medium text-slate-700 mb-1">หนังสือรับรองบริษัท (Company Certificate) <span className="text-red-500">*</span> <span className="text-slate-400 text-xs font-normal">(Max 10MB)</span></label>
-                  <input type="file" name="company-certificate" onChange={handleChange} required className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 transition-all cursor-pointer" />
+                  <label className="block text-sm font-medium text-slate-700 mb-1">หนังสือรับรองบริษัท (Company Certificate) <span className="text-red-500">*</span> <span className="text-slate-400 text-xs font-normal">(Max 10MB - PDF, Doc, Image, Zip)</span></label>
+                  <input 
+                    name="company-certificate" 
+                    type="file" 
+                    required 
+                    accept=".jpg,.jpeg,.png,.pdf,.doc,.docx,.zip"
+                    onChange={handleChange} 
+                    className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 transition-all cursor-pointer" 
+                  />
                 </div>
               </div>
             </div>
