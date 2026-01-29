@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { ViewState } from '../types';
 import { API_ENDPOINTS } from '../config';
+import { PrivacyModal } from '../components/PrivacyModal';
 
 interface RegProps {
   setView: (view: ViewState) => void;
@@ -10,11 +11,15 @@ interface RegProps {
 
 const isNumeric = (val: string) => /^\d+$/.test(val.replace(/[-\s]/g, ''));
 
+const isValidEmail = (email: string) => {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+};
+
 /**
  * Helper for Email Validation
  */
 const checkEmailAvailability = async (email: string) => {
-  if (!email || !email.includes('@')) return { available: false, error: 'Invalid format' };
+  if (!email || !isValidEmail(email)) return { available: false, error: 'Invalid format' };
   try {
     const url = new URL(API_ENDPOINTS.VALIDATE_EMAIL);
     url.searchParams.append('email', email);
@@ -131,11 +136,13 @@ const checkTaxIdAvailability = async (taxId: string) => {
 const PDPASection = ({ 
   checked, 
   onChange, 
+  onOpenPrivacy,
   isEn = false, 
   name = "pdpa_consent" 
 }: { 
   checked: boolean, 
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void, 
+  onOpenPrivacy: () => void,
   isEn?: boolean, 
   name?: string 
 }) => (
@@ -153,8 +160,18 @@ const PDPASection = ({
         />
       </div>
       <div className="text-sm">
-        <label htmlFor={name} className="font-bold text-slate-800 cursor-pointer">
+        <label htmlFor={name} className="font-bold text-slate-800 cursor-pointer flex flex-wrap items-center gap-2">
           {isEn ? 'PDPA Consent' : 'ความยินยอมให้ใช้ข้อมูลตาม PDPA (PDPA Consent)'} <span className="text-red-500">*</span>
+          <button 
+            type="button" 
+            onClick={(e) => {
+              e.preventDefault(); // Prevent label click
+              onOpenPrivacy();
+            }}
+            className="text-primary-600 hover:text-primary-800 underline text-xs font-medium transition-colors ml-1"
+          >
+            {isEn ? '(Read Privacy Notice)' : '(อ่านนโยบายความเป็นส่วนตัว)'}
+          </button>
         </label>
         <p className="text-slate-500 leading-relaxed mt-1">
           {isEn 
@@ -237,21 +254,32 @@ const EmailField = ({
   isEn?: boolean
 }) => {
   const [status, setStatus] = useState<'idle' | 'checking' | 'available' | 'taken' | 'error'>('idle');
+  const [isInvalidFormat, setIsInvalidFormat] = useState(false);
 
   useEffect(() => {
     if (status !== 'idle') {
       setStatus('idle');
       onValidationChange?.(false);
     }
+    setIsInvalidFormat(false);
   }, [value]);
 
   const handleBlur = async () => {
-    if (!value || value.length < 5 || !value.includes('@')) {
+    if (!value) {
       setStatus('idle');
+      setIsInvalidFormat(false);
       onValidationChange?.(false);
       return;
     }
 
+    if (!isValidEmail(value)) {
+      setStatus('idle');
+      setIsInvalidFormat(true);
+      onValidationChange?.(false);
+      return;
+    }
+
+    setIsInvalidFormat(false);
     setStatus('checking');
     onValidationChange?.(false);
 
@@ -281,7 +309,7 @@ const EmailField = ({
           onChange={onChange} 
           onBlur={handleBlur}
           className={`block w-full rounded-xl p-3 border bg-slate-50 outline-none transition-all ${
-            status === 'taken' ? 'border-red-500 ring-1 ring-red-200 focus:ring-red-500' : 
+            status === 'taken' || isInvalidFormat ? 'border-red-500 ring-1 ring-red-200 focus:ring-red-500' : 
             status === 'available' ? 'border-green-500 ring-1 ring-green-100 focus:ring-green-500' : 'border-slate-200 focus:ring-primary-500'
           }`} 
           placeholder={placeholder} 
@@ -290,6 +318,7 @@ const EmailField = ({
           {status === 'checking' && <span className="material-symbols-outlined animate-spin text-slate-400 text-sm">sync</span>}
           {status === 'available' && <span className="material-symbols-outlined text-green-500 text-sm">check_circle</span>}
           {status === 'taken' && <span className="material-symbols-outlined text-red-500 text-sm">cancel</span>}
+          {isInvalidFormat && <span className="material-symbols-outlined text-red-500 text-sm">error</span>}
         </div>
       </div>
       {status === 'taken' && (
@@ -300,6 +329,11 @@ const EmailField = ({
       {status === 'available' && (
         <p className="mt-1 text-xs text-green-600 font-medium animate-in fade-in slide-in-from-top-1 duration-300">
           {isEn ? 'Email is available.' : 'สามารถใช้งานอีเมลนี้ได้'}
+        </p>
+      )}
+      {isInvalidFormat && (
+        <p className="mt-1 text-xs text-red-600 font-medium animate-in fade-in slide-in-from-top-1 duration-300">
+          {isEn ? 'Invalid email format' : 'รูปแบบอีเมลไม่ถูกต้อง'}
         </p>
       )}
     </div>
@@ -489,9 +523,10 @@ export const RegisterLocal: React.FC<RegProps> = ({ setView, onSuccess }) => {
   const [error, setError] = useState<string | null>(null);
   const [isEmailAvailable, setIsEmailAvailable] = useState(false);
   const [isPhoneAvailable, setIsPhoneAvailable] = useState(false);
+  const [showPrivacy, setShowPrivacy] = useState(false);
 
   const [formData, setFormData] = useState({
-    name_surname: '', national_id: '', nationality: 'ไทย', date_of_birth: '', gender: '', phone: '', email: '', address: '',
+    first_name: '', last_name: '', national_id: '', nationality: 'ไทย', date_of_birth: '', gender: '', phone: '', email: '', address: '',
     education_status: 'professional', workplace_name: '', position: '', job_nature: 'design', work_address: '',
     degree: '', faculty: '', major: '', year_of_entry: '', institution: '', student_id: '',
     student_id_card: null as File | null,
@@ -502,7 +537,18 @@ export const RegisterLocal: React.FC<RegProps> = ({ setView, onSuccess }) => {
     const { name, value, type } = e.target;
     if (type === 'file') {
       const files = (e.target as HTMLInputElement).files;
-      setFormData(prev => ({ ...prev, [name]: files ? files[0] : null }));
+      if (files && files[0]) {
+        if (files[0].size > 10 * 1024 * 1024) { // 10MB
+          setError("ขนาดไฟล์ต้องไม่เกิน 10MB");
+          (e.target as HTMLInputElement).value = ''; // Reset file input
+          setFormData(prev => ({ ...prev, [name]: null }));
+        } else {
+          setError(null);
+          setFormData(prev => ({ ...prev, [name]: files[0] }));
+        }
+      } else {
+        setFormData(prev => ({ ...prev, [name]: null }));
+      }
     } else {
       const val = type === 'checkbox' ? (e.target as HTMLInputElement).checked : value;
       setFormData(prev => ({ ...prev, [name]: val }));
@@ -551,20 +597,47 @@ export const RegisterLocal: React.FC<RegProps> = ({ setView, onSuccess }) => {
       const authHeader = btoa('USERNAME:APPLICATION_PASSWORD');
       const payload = new FormData();
       
-      const fields = [
-        'name_surname', 'national_id', 'nationality', 'date_of_birth', 'gender', 'phone', 'email', 'address',
-        'education_status', 'workplace_name', 'position', 'job_nature', 'work_address', 'degree', 'faculty', 
-        'major', 'year_of_entry', 'institution', 'student_id', 'security_question', 'security_answer', 'password'
-      ];
-
-      fields.forEach(field => {
-        payload.append(field, (formData as any)[field] || '');
-      });
-
-      payload.append('pdpa-consent', formData.pdpa_consent ? '1' : '0');
+      // Explicit mapping to requested API structure
+      payload.append('name', formData.first_name);
+      payload.append('surname', formData.last_name);
+      payload.append('cal-fullname', `${formData.first_name} ${formData.last_name}`);
+      
+      payload.append('national_id', formData.national_id);
+      payload.append('nationality', formData.nationality);
+      payload.append('date_of_birth', formData.date_of_birth);
+      payload.append('gender', formData.gender);
+      payload.append('phone', formData.phone);
+      payload.append('email', formData.email);
+      payload.append('address', formData.address);
+      
+      payload.append('education_status', formData.education_status);
+      payload.append('workplace_name', formData.workplace_name);
+      payload.append('position', formData.position);
+      payload.append('job_nature', formData.job_nature);
+      payload.append('work_address', formData.work_address);
+      
+      payload.append('degree', formData.degree);
+      payload.append('major', formData.major);
+      payload.append('faculty', formData.faculty); 
+      payload.append('year_of_entry', formData.year_of_entry);
+      payload.append('institution', formData.institution);
+      payload.append('student_id', formData.student_id);
+      
+      payload.append('password', formData.password);
+      payload.append('confirm-password', formData.confirm_password);
+      payload.append('security_question', formData.security_question);
+      payload.append('security_answer', formData.security_answer);
+      payload.append('pdpa_consent', formData.pdpa_consent ? '1' : '0'); 
       
       if (formData.student_id_card) {
-        payload.append('student_id_card', formData.student_id_card);
+        const fName = formData.first_name || 'firstname';
+        const lName = formData.last_name || 'lastname';
+        const cleanFName = fName.trim().replace(/[^a-zA-Z0-9ก-๙]/g, '');
+        const cleanLName = lName.trim().replace(/[^a-zA-Z0-9ก-๙]/g, '');
+        
+        const newFileName = `student_id_card_${cleanFName}_${cleanLName}_${formData.student_id_card.name}`;
+        const renamedFile = new File([formData.student_id_card], newFileName, { type: formData.student_id_card.type });
+        payload.append('student_id_card', renamedFile);
       }
 
       const response = await fetch(API_ENDPOINTS.REGISTER_LOCAL, {
@@ -589,6 +662,7 @@ export const RegisterLocal: React.FC<RegProps> = ({ setView, onSuccess }) => {
 
   return (
     <div className="w-full bg-slate-50 min-h-screen pb-20 font-sans">
+      <PrivacyModal isOpen={showPrivacy} onClose={() => setShowPrivacy(false)} language="th" />
       <div className="max-w-4xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-center mb-10">
           <div className="flex items-center w-full max-w-xs">
@@ -614,9 +688,13 @@ export const RegisterLocal: React.FC<RegProps> = ({ setView, onSuccess }) => {
           {step === 1 ? (
             <form onSubmit={handleNext} className="space-y-6">
               <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                <div className="sm:col-span-2">
-                  <label className="block text-sm font-medium text-slate-700 mb-1">ชื่อ-นามสกุล <span className="text-red-500">*</span></label>
-                  <input name="name_surname" type="text" required value={formData.name_surname} onChange={handleChange} className="block w-full rounded-xl border-slate-200 p-3 border bg-slate-50 outline-none focus:ring-2 focus:ring-primary-500 transition-all" placeholder="ชื่อ และ นามสกุล" />
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">ชื่อ (Name) <span className="text-red-500">*</span></label>
+                  <input name="first_name" type="text" required value={formData.first_name} onChange={handleChange} className="block w-full rounded-xl border-slate-200 p-3 border bg-slate-50 outline-none focus:ring-2 focus:ring-primary-500 transition-all" placeholder="ระบุชื่อจริง" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">นามสกุล (Surname) <span className="text-red-500">*</span></label>
+                  <input name="last_name" type="text" required value={formData.last_name} onChange={handleChange} className="block w-full rounded-xl border-slate-200 p-3 border bg-slate-50 outline-none focus:ring-2 focus:ring-primary-500 transition-all" placeholder="ระบุนามสกุล" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">เลขบัตรประชาชน <span className="text-red-500">*</span></label>
@@ -734,7 +812,7 @@ export const RegisterLocal: React.FC<RegProps> = ({ setView, onSuccess }) => {
                       <input name="student_id" type="text" required value={formData.student_id} onChange={handleChange} className="block w-full rounded-xl border-slate-200 p-3 border bg-slate-50 outline-none focus:ring-2 focus:ring-primary-500" />
                     </div>
                     <div className="sm:col-span-2">
-                      <label className="block text-sm font-medium text-slate-700 mb-1">รูปบัตรประจำตัวนักศึกษา (ID Card Image) <span className="text-red-500">*</span></label>
+                      <label className="block text-sm font-medium text-slate-700 mb-1">รูปบัตรประจำตัวนักศึกษา (ID Card Image) <span className="text-red-500">*</span> <span className="text-slate-400 text-xs font-normal">(Max 10MB)</span></label>
                       <input name="student_id_card" type="file" required onChange={handleChange} className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100 transition-all cursor-pointer" />
                     </div>
                   </div>
@@ -760,7 +838,7 @@ export const RegisterLocal: React.FC<RegProps> = ({ setView, onSuccess }) => {
               </div>
 
               <SecurityQuestionsSection value={formData.security_question} answer={formData.security_answer} onChange={handleChange} />
-              <PDPASection checked={formData.pdpa_consent} onChange={handleChange} />
+              <PDPASection checked={formData.pdpa_consent} onChange={handleChange} onOpenPrivacy={() => setShowPrivacy(true)} />
 
               <div className="flex justify-between items-center pt-8 border-t border-slate-100">
                  <button type="button" onClick={() => setStep(1)} className="px-8 py-3 text-slate-500 font-bold hover:text-slate-800 hover:bg-slate-50 rounded-xl transition-all flex items-center gap-1">
@@ -801,9 +879,11 @@ export const RegisterForeign: React.FC<RegProps> = ({ setView, onSuccess }) => {
   const [error, setError] = useState<string | null>(null);
   const [isEmailAvailable, setIsEmailAvailable] = useState(false);
   const [isPhoneAvailable, setIsPhoneAvailable] = useState(false);
+  const [showPrivacy, setShowPrivacy] = useState(false);
   
   const [formData, setFormData] = useState({
-    'full-name': '', 
+    'first-name': '',
+    'last-name': '',
     'passport-number': '', 
     'nationality': '', 
     'date-of-birth': '', 
@@ -867,6 +947,29 @@ export const RegisterForeign: React.FC<RegProps> = ({ setView, onSuccess }) => {
     try {
       const authHeader = btoa('USERNAME:APPLICATION_PASSWORD');
       
+      const payload = {
+        'name': formData['first-name'],
+        'surname': formData['last-name'],
+        'cal-fullname': `${formData['first-name']} ${formData['last-name']}`,
+        'passport-number': formData['passport-number'],
+        'nationality': formData['nationality'],
+        'date-of-birth': formData['date-of-birth'],
+        'gender': formData['gender'],
+        'phone-number': formData['phone-number'],
+        'email': formData['email'],
+        'residential-address': formData['residential-address'],
+        'workplace-name': formData['workplace-name'],
+        'job-position': formData['job-position'],
+        'nature-of-work': formData['nature-of-work'],
+        'work-address': formData['work-address'],
+        'password': formData['password'],
+        'confirm-password': formData['confirm-password'],
+        'security-question': formData['security-question'],
+        'security_answer': formData['security-answer'], // Changed key to underscore as requested
+        'account_status': 'Pending', // Added account_status
+        'pdpa-consent': formData['pdpa-consent'] ? '1' : '0'
+      };
+
       const response = await fetch(API_ENDPOINTS.REGISTER_FOREIGN, {
         method: 'POST',
         headers: { 
@@ -874,10 +977,7 @@ export const RegisterForeign: React.FC<RegProps> = ({ setView, onSuccess }) => {
           'Authorization': `Basic ${authHeader}`,
           'Accept': 'application/json'
         },
-        body: JSON.stringify({
-          ...formData,
-          'pdpa-consent': formData['pdpa-consent'] ? '1' : '0'
-        })
+        body: JSON.stringify(payload)
       });
       
       if (!response.ok && response.status !== 0) throw new Error('API Error');
@@ -893,6 +993,7 @@ export const RegisterForeign: React.FC<RegProps> = ({ setView, onSuccess }) => {
 
   return (
     <div className="w-full bg-slate-50 min-h-screen pb-20 font-sans">
+      <PrivacyModal isOpen={showPrivacy} onClose={() => setShowPrivacy(false)} language="en" />
       <div className="max-w-4xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-10"><h1 className="text-4xl font-extrabold text-slate-900 mb-3 tracking-tight">Foreign Member Registration</h1></div>
         {error && (
@@ -909,9 +1010,13 @@ export const RegisterForeign: React.FC<RegProps> = ({ setView, onSuccess }) => {
                   Personal Information
                 </h3>
                 <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                  <div className="sm:col-span-2">
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Full Name <span className="text-red-500">*</span></label>
-                    <input type="text" name="full-name" value={formData['full-name']} onChange={handleChange} required className="block w-full rounded-xl border-slate-200 p-3 border bg-slate-50 outline-none focus:ring-2 focus:ring-primary-500 transition-all" />
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">First Name <span className="text-red-500">*</span></label>
+                    <input type="text" name="first-name" value={formData['first-name']} onChange={handleChange} required className="block w-full rounded-xl border-slate-200 p-3 border bg-slate-50 outline-none focus:ring-2 focus:ring-primary-500 transition-all" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">Last Name <span className="text-red-500">*</span></label>
+                    <input type="text" name="last-name" value={formData['last-name']} onChange={handleChange} required className="block w-full rounded-xl border-slate-200 p-3 border bg-slate-50 outline-none focus:ring-2 focus:ring-primary-500 transition-all" />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-1">Passport Number <span className="text-red-500">*</span></label>
@@ -1013,7 +1118,7 @@ export const RegisterForeign: React.FC<RegProps> = ({ setView, onSuccess }) => {
                 questionName="security-question" 
                 answerName="security-answer" 
              />
-             <PDPASection checked={formData['pdpa-consent']} onChange={handleChange} name="pdpa-consent" />
+             <PDPASection checked={formData['pdpa-consent']} onChange={handleChange} name="pdpa-consent" isEn={true} onOpenPrivacy={() => setShowPrivacy(true)} />
 
              <div className="flex justify-between items-center pt-8 border-t border-slate-100">
                 <button type="button" onClick={() => setView(ViewState.LANDING)} className="px-8 py-3 text-slate-500 font-bold hover:text-slate-800 hover:bg-slate-50 rounded-xl transition-all" disabled={loading}>Cancel</button>
@@ -1052,6 +1157,7 @@ export const RegisterCorporate: React.FC<RegProps> = ({ setView, onSuccess }) =>
   const [isRepEmailAvailable, setIsRepEmailAvailable] = useState(false);
   const [isRepPhoneAvailable, setIsRepPhoneAvailable] = useState(false);
   const [isTaxIdAvailable, setIsTaxIdAvailable] = useState(false);
+  const [showPrivacy, setShowPrivacy] = useState(false);
 
   const [formData, setFormData] = useState({
     'organization-name': '',
@@ -1061,7 +1167,8 @@ export const RegisterCorporate: React.FC<RegProps> = ({ setView, onSuccess }) =>
     'corporate-email': '',
     'corporate-address': '',
     'company-certificate': null as File | null,
-    'representative-name': '',
+    'representative-first-name': '',
+    'representative-last-name': '',
     'national-id': '',
     'representative-phone': '',
     'representative-email': '',
@@ -1077,7 +1184,18 @@ export const RegisterCorporate: React.FC<RegProps> = ({ setView, onSuccess }) =>
     const { name, value, type } = e.target;
     if (type === 'file') {
       const files = (e.target as HTMLInputElement).files;
-      setFormData(prev => ({ ...prev, [name]: files ? files[0] : null }));
+      if (files && files[0]) {
+        if (files[0].size > 10 * 1024 * 1024) { // 10MB
+          setError("ขนาดไฟล์ต้องไม่เกิน 10MB (File size must not exceed 10MB)");
+          (e.target as HTMLInputElement).value = ''; // Reset file input
+          setFormData(prev => ({ ...prev, [name]: null }));
+        } else {
+          setError(null);
+          setFormData(prev => ({ ...prev, [name]: files[0] }));
+        }
+      } else {
+        setFormData(prev => ({ ...prev, [name]: null }));
+      }
     } else {
       const val = type === 'checkbox' ? (e.target as HTMLInputElement).checked : value;
       setFormData(prev => ({ ...prev, [name]: val }));
@@ -1131,21 +1249,47 @@ export const RegisterCorporate: React.FC<RegProps> = ({ setView, onSuccess }) =>
       const authHeader = btoa('USERNAME:APPLICATION_PASSWORD');
       const payload = new FormData();
       
-      const fields = [
-        'organization-name', 'tax-id', 'business-type', 'business-scope', 'corporate-email', 
-        'corporate-address', 'representative-name', 'national-id', 'representative-phone', 
-        'representative-email', 'representative-address', 'security-question', 'security-answer', 'password'
-      ];
-
-      fields.forEach(field => {
-        payload.append(field, (formData as any)[field] || '');
-      });
-
-      payload.append('pdpa-consent', formData['pdpa-consent'] ? '1' : '0');
+      // Explicit mapping based on request
+      payload.append('organization-name', formData['organization-name']);
+      payload.append('tax-id', formData['tax-id']);
+      payload.append('business-type', formData['business-type']);
+      payload.append('business-scope', formData['business-scope']);
+      payload.append('corporate-email', formData['corporate-email']);
+      payload.append('corporate-address', formData['corporate-address']);
       
+      // Certificate file
       if (formData['company-certificate']) {
-        payload.append('company-certificate', formData['company-certificate']);
+        const orgName = formData['organization-name'] || 'company';
+        const fName = formData['representative-first-name'] || 'firstname';
+        const lName = formData['representative-last-name'] || 'lastname';
+        
+        const cleanOrgName = orgName.trim().replace(/[^a-zA-Z0-9ก-๙]/g, '');
+        const cleanFName = fName.trim().replace(/[^a-zA-Z0-9ก-๙]/g, '');
+        const cleanLName = lName.trim().replace(/[^a-zA-Z0-9ก-๙]/g, '');
+        
+        // Include company name at the front of the filename
+        const newFileName = `${cleanOrgName}_company-certificate_${cleanFName}_${cleanLName}_${formData['company-certificate'].name}`;
+        const renamedFile = new File([formData['company-certificate']], newFileName, { type: formData['company-certificate'].type });
+        payload.append('company-certificate', renamedFile);
       }
+
+      payload.append('representative-name', formData['representative-first-name']);
+      payload.append('representative-surname', formData['representative-last-name']);
+      payload.append('rep-fullname', `${formData['representative-first-name']} ${formData['representative-last-name']}`);
+      
+      payload.append('national-id', formData['national-id']);
+      payload.append('representative-phone', formData['representative-phone']);
+      payload.append('representative-email', formData['representative-email']);
+      payload.append('representative-address', formData['representative-address']);
+      
+      payload.append('password', formData['password']);
+      payload.append('confirm-password', formData['confirm-password']);
+      
+      payload.append('security-question', formData['security-question']);
+      payload.append('security-answer', formData['security-answer']);
+      
+      payload.append('account_status', 'Pending');
+      payload.append('pdpa-consent', formData['pdpa-consent'] ? '1' : '0');
 
       const response = await fetch(API_ENDPOINTS.REGISTER_CORPORATE, {
         method: 'POST',
@@ -1169,6 +1313,7 @@ export const RegisterCorporate: React.FC<RegProps> = ({ setView, onSuccess }) =>
 
   return (
     <div className="w-full bg-slate-50 min-h-screen pb-20 font-sans">
+      <PrivacyModal isOpen={showPrivacy} onClose={() => setShowPrivacy(false)} language="th" />
       <div className="max-w-4xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-10"><h1 className="text-3xl md:text-4xl font-extrabold text-slate-900 mb-3 tracking-tight">ลงทะเบียนสมาชิกนิติบุคคล</h1></div>
         {error && (
@@ -1226,7 +1371,7 @@ export const RegisterCorporate: React.FC<RegProps> = ({ setView, onSuccess }) =>
                   <textarea name="corporate-address" rows={2} value={formData['corporate-address']} onChange={handleChange} required className="block w-full rounded-xl border-slate-200 p-3 border bg-slate-50 outline-none focus:ring-2 focus:ring-blue-500 transition-all"></textarea>
                 </div>
                 <div className="sm:col-span-2">
-                  <label className="block text-sm font-medium text-slate-700 mb-1">หนังสือรับรองบริษัท (Company Certificate) <span className="text-red-500">*</span></label>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">หนังสือรับรองบริษัท (Company Certificate) <span className="text-red-500">*</span> <span className="text-slate-400 text-xs font-normal">(Max 10MB)</span></label>
                   <input type="file" name="company-certificate" onChange={handleChange} required className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 transition-all cursor-pointer" />
                 </div>
               </div>
@@ -1238,9 +1383,13 @@ export const RegisterCorporate: React.FC<RegProps> = ({ setView, onSuccess }) =>
                 ข้อมูลผู้แทน / ผู้ประสานงาน (Representative Info)
               </h3>
               <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                <div className="sm:col-span-2">
-                  <label className="block text-sm font-medium text-slate-700 mb-1">ชื่อ-นามสกุล ผู้แทน <span className="text-red-500">*</span></label>
-                  <input type="text" name="representative-name" value={formData['representative-name']} onChange={handleChange} required className="block w-full rounded-xl border-slate-200 p-3 border bg-slate-50 outline-none focus:ring-2 focus:ring-blue-500 transition-all" />
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">ชื่อผู้แทน (First Name) <span className="text-red-500">*</span></label>
+                  <input type="text" name="representative-first-name" value={formData['representative-first-name']} onChange={handleChange} required className="block w-full rounded-xl border-slate-200 p-3 border bg-slate-50 outline-none focus:ring-2 focus:ring-blue-500 transition-all" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">นามสกุลผู้แทน (Last Name) <span className="text-red-500">*</span></label>
+                  <input type="text" name="representative-last-name" value={formData['representative-last-name']} onChange={handleChange} required className="block w-full rounded-xl border-slate-200 p-3 border bg-slate-50 outline-none focus:ring-2 focus:ring-blue-500 transition-all" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">เลขบัตรประชาชน / Passport ID <span className="text-red-500">*</span></label>
@@ -1287,7 +1436,7 @@ export const RegisterCorporate: React.FC<RegProps> = ({ setView, onSuccess }) =>
               questionName="security-question"
               answerName="security-answer"
             />
-            <PDPASection checked={formData['pdpa-consent']} onChange={handleChange} name="pdpa-consent" />
+            <PDPASection checked={formData['pdpa-consent']} onChange={handleChange} name="pdpa-consent" onOpenPrivacy={() => setShowPrivacy(true)} />
 
             <div className="flex justify-between items-center pt-8 border-t border-slate-100">
                <button type="button" onClick={() => setView(ViewState.LANDING)} className="px-8 py-3 text-slate-500 font-bold hover:text-slate-800 hover:bg-slate-50 rounded-xl transition-all" disabled={loading}>ยกเลิก</button>

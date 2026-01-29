@@ -9,7 +9,8 @@ interface ProfileProps {
 export const EditProfile: React.FC<ProfileProps> = ({ setView }) => {
   // Simulated initial data reflecting the new fields
   const [formData, setFormData] = useState({
-    fullName: 'John Doe',
+    firstName: 'John',
+    lastName: 'Doe',
     phone: '081-234-5678',
     idCard: '1-1234-56789-01-2',
     dob: '1990-01-15',
@@ -82,9 +83,13 @@ export const EditProfile: React.FC<ProfileProps> = ({ setView }) => {
                 ข้อมูลบุคคล (Personal Info)
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-semibold text-slate-700 mb-1.5">ชื่อ-นามสกุล</label>
-                  <input type="text" name="fullName" value={formData.fullName} onChange={handleChange} className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-slate-50 focus:bg-white focus:ring-2 focus:ring-primary-500 outline-none transition-all" />
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-1.5">ชื่อ (First Name)</label>
+                  <input type="text" name="firstName" value={formData.firstName} onChange={handleChange} className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-slate-50 focus:bg-white focus:ring-2 focus:ring-primary-500 outline-none transition-all" />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-1.5">นามสกุล (Last Name)</label>
+                  <input type="text" name="lastName" value={formData.lastName} onChange={handleChange} className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-slate-50 focus:bg-white focus:ring-2 focus:ring-primary-500 outline-none transition-all" />
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-slate-700 mb-1.5">เบอร์โทรศัพท์ติดต่อ</label>
