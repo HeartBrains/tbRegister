@@ -38,36 +38,48 @@ export const Landing: React.FC<LandingProps> = ({ setView }) => {
                 <span className="material-symbols-outlined text-9xl">verified_user</span>
              </div>
              <div className="relative z-10">
-                <h2 className="text-2xl font-bold text-slate-900 mb-8 flex items-center gap-3">
+                <h2 className="text-2xl font-bold text-slate-900 mb-4 flex items-center gap-3">
                     <div className="w-10 h-10 rounded-xl bg-primary-600 text-white flex items-center justify-center shadow-md">
                         <span className="material-symbols-outlined">badge</span>
                     </div>
-                    คุณสมบัติของผู้สมัครสมาชิก
+                    คุณสมบัติของการเป็นสมาชิก
                 </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-y-4 gap-x-8">
+                <p className="text-slate-600 mb-8 ml-14">ผู้ประสงค์จะสมัครเป็นสมาชิกของสมาคมฯ จะต้องมีคุณสมบัติ ดังต่อไปนี้</p>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-y-4 gap-x-8">
                     {[
-                        "บรรลุนิติภาวะเเล้ว",
-                        "มีความประพฤติเรียบร้อย",
-                        "มีจรรยาบรรณในวิชาชีพ",
-                        "ไม่เป็นโรคที่สังคมรังเกียจ",
-                        "ไม่เป็นบุคคลล้มละลาย/ไร้ความสามารถ*",
-                        "ไม่เป็นบุคคลวิกลจริต/จิตฟั่นเฟือน"
+                        "1. เป็นผู้บรรลุนิติภาวะเเล้ว",
+                        "2. เป็นผู้มีความประพฤติเรียบร้อย",
+                        "3. ไม่เป็นโรคที่สังคมรังเกียจ",
+                        "4. มีจรรยาบรรณในวิชาชีพของตน",
+                        "5. ไม่ต้องคำพิพากษาของศาลถึงที่สุดให้เป็นบุคคลล้มละลาย หรือไร้ความสามารถ หรือเสมือนไร้ความสามารถ*",
+                        "6. ไม่เป็นบุคคลวิกลจริต หรือจิตฟั่นเฟือนไม่สมประกอบ"
                     ].map((item, idx) => (
-                        <div key={idx} className="flex items-center gap-3">
-                            <div className="flex-shrink-0 w-6 h-6 rounded-full bg-green-100 flex items-center justify-center">
+                        <div key={idx} className="flex items-start gap-3">
+                            <div className="flex-shrink-0 w-6 h-6 mt-0.5 rounded-full bg-green-100 flex items-center justify-center">
                                 <span className="material-symbols-outlined text-sm text-green-600 font-bold">check</span>
                             </div>
                             <span className="text-slate-700 font-medium">{item}</span>
                         </div>
                     ))}
                 </div>
-                <p className="mt-6 text-xs text-slate-400 italic">
-                  * ไม่ต้องคำพิพากษาของศาลถึงที่สุดให้เป็นบุคคลล้มละลาย หรือไร้ความสามารถ หรือเสมือนไร้ความสามารถ หรือต้องโทษจำคุก (ยกเว้นความผิดฐานประมาท/ลหุโทษ)
-                </p>
+                <div className="mt-8 p-4 bg-slate-50 rounded-xl border border-slate-100 text-xs text-slate-500 italic leading-relaxed">
+                  * หรือต้องโทษจำคุก ยกเว้นความผิดฐานประมาท หรือ ลหุโทษ การต้องคำพิพากษาของศาลถึงที่สุดในกรณีดังกล่าว จะต้องเป็นในขณะที่สมัครเข้าเป็นสมาชิก หรือระหว่างที่เป็นสมาชิกของสมาคม เท่านั้น
+                </div>
              </div>
           </div>
 
           {/* Membership Types & Fees Grid */}
+          <div className="mb-8">
+            <h2 className="text-2xl font-bold text-slate-900 mb-6 flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center shadow-md">
+                    <span className="material-symbols-outlined">category</span>
+                </div>
+                ประเภทของสมาชิกและอัตราค่าสมัคร
+            </h2>
+            <p className="text-slate-600 mb-6 ml-14">สมาชิกของสมาคมฯ มี 2 ประเภท</p>
+          </div>
+
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-12">
             
             {/* Corporate - Highlighted */}
@@ -80,20 +92,21 @@ export const Landing: React.FC<LandingProps> = ({ setView }) => {
                         <div className="w-14 h-14 bg-white/10 rounded-2xl flex items-center justify-center mb-6 backdrop-blur-md border border-white/10">
                             <span className="material-symbols-outlined text-3xl text-blue-300">corporate_fare</span>
                         </div>
-                        <h3 className="text-2xl font-bold mb-3">สมาชิกนิติบุคคล</h3>
-                        <p className="text-slate-400 text-sm mb-8 leading-relaxed">
-                            สถาบันการศึกษา หน่วยงานของรัฐ เอกชน และบริษัท ห้างร้านที่จดทะเบียนถูกต้อง
+                        <h3 className="text-2xl font-bold mb-1">1. สมาชิกนิติบุคคล</h3>
+                        <p className="text-slate-400 text-sm mb-6 leading-relaxed">
+                            ได้แก่ สถาบันการศึกษาหน่วยงานของรัฐ เอกชน และบริษัท ห้างร้านที่จดทะเบียน และให้การสนับสนุนสมาคมฯ ซึ่งคณะกรรมการอำนวยการลงมติให้รับเป็นสมาชิก
                         </p>
                         
                         <div className="mt-auto space-y-4">
-                            <div className="p-4 rounded-xl bg-white/5 border border-white/10 flex justify-between items-center">
-                                <div>
-                                    <p className="text-xs text-slate-400 uppercase font-bold tracking-wider mb-1">รายปี</p>
-                                    <p className="text-2xl font-bold">5,000 <span className="text-sm font-normal text-slate-400">บาท</span></p>
+                            <div className="p-4 rounded-xl bg-white/5 border border-white/10">
+                                <p className="text-xs text-slate-400 uppercase font-bold tracking-wider mb-2">อัตราค่าบำรุงสมาคมฯ</p>
+                                <div className="flex justify-between items-center mb-2">
+                                    <span className="text-sm text-slate-300">รายปี (ไม่ต่ำกว่า)</span>
+                                    <span className="text-xl font-bold">5,000 <span className="text-sm font-normal text-slate-400">บาท</span></span>
                                 </div>
-                                <div className="text-right">
-                                    <p className="text-xs text-slate-400 uppercase font-bold tracking-wider mb-1">ราย 3 ปี</p>
-                                    <p className="text-2xl font-bold text-blue-400">12,000 <span className="text-sm font-normal text-slate-400">บาท</span></p>
+                                <div className="flex justify-between items-center border-t border-white/10 pt-2">
+                                    <span className="text-sm text-blue-300">ราย 3 ปี (ไม่ต่ำกว่า)</span>
+                                    <span className="text-xl font-bold text-blue-300">12,000 <span className="text-sm font-normal text-blue-300/70">บาท</span></span>
                                 </div>
                             </div>
                         </div>
@@ -102,87 +115,86 @@ export const Landing: React.FC<LandingProps> = ({ setView }) => {
             </div>
 
             {/* Individual Types */}
-            <div className="lg:col-span-7 grid grid-cols-1 md:grid-cols-2 gap-6">
-                
-                {/* Ordinary */}
-                <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm hover:shadow-md hover:border-indigo-200 transition-all group">
-                    <div className="flex items-center gap-3 mb-4">
-                        <div className="p-2.5 bg-indigo-50 text-indigo-600 rounded-xl group-hover:bg-indigo-600 group-hover:text-white transition-colors">
-                            <span className="material-symbols-outlined">engineering</span>
+            <div className="lg:col-span-7 flex flex-col gap-6">
+                <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm">
+                    <h3 className="text-xl font-bold text-slate-900 mb-4 ml-1">2. สมาชิกบุคคลธรรมดา (มี 4 ประเภท)</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {/* Honorary */}
+                        <div className="bg-slate-50 rounded-2xl p-5 border border-slate-100 hover:border-yellow-200 transition-colors group">
+                            <div className="flex items-start gap-3 mb-2">
+                                <div className="p-2 bg-yellow-100 text-yellow-700 rounded-lg group-hover:bg-yellow-500 group-hover:text-white transition-colors">
+                                    <span className="material-symbols-outlined text-xl">workspace_premium</span>
+                                </div>
+                                <div>
+                                    <h4 className="font-bold text-slate-900 text-base">2.1 สมาชิกกิตติมศักดิ์</h4>
+                                </div>
+                            </div>
+                            <p className="text-xs text-slate-500 mb-3 leading-relaxed h-[4.5rem]">
+                                ได้แก่ บุคคลผู้ทรงเกียรติ หรือ ทรงคุณวุฒิหรือผู้มีอุปการะคุณแก่สมาคม ซึ่งคณะกรรมการอำนวยการลงมติให้เชิญเป็นสมาชิกของสมาคม
+                            </p>
+                            <div className="text-right">
+                                <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold bg-slate-200 text-slate-700">
+                                    มิต้องเสียค่าลงทะเบียนและค่าบำรุง
+                                </span>
+                            </div>
                         </div>
-                        <h3 className="font-bold text-slate-900 text-lg">สมาชิกสามัญ</h3>
-                    </div>
-                    <p className="text-sm text-slate-500 mb-6 min-h-[40px]">
-                        ผู้จบการศึกษาระดับ ปวส., ปริญญาตรี หรือสูงกว่า ในสาขาที่เกี่ยวข้อง
-                    </p>
-                    <div className="space-y-3">
-                         <div className="flex justify-between items-center text-sm">
-                             <span className="text-slate-600">รายปี</span>
-                             <span className="font-bold text-slate-900">400 บาท</span>
-                         </div>
-                         <div className="flex justify-between items-center text-sm pt-3 border-t border-slate-100">
-                             <span className="text-indigo-600 font-medium">ราย 3 ปี</span>
-                             <span className="font-bold text-indigo-700">1,000 บาท</span>
-                         </div>
-                    </div>
-                </div>
 
-                {/* Extraordinary */}
-                <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm hover:shadow-md hover:border-emerald-200 transition-all group">
-                    <div className="flex items-center gap-3 mb-4">
-                        <div className="p-2.5 bg-emerald-50 text-emerald-600 rounded-xl group-hover:bg-emerald-600 group-hover:text-white transition-colors">
-                            <span className="material-symbols-outlined">public</span>
+                        {/* Ordinary */}
+                        <div className="bg-slate-50 rounded-2xl p-5 border border-slate-100 hover:border-indigo-200 transition-colors group">
+                            <div className="flex items-start gap-3 mb-2">
+                                <div className="p-2 bg-indigo-100 text-indigo-700 rounded-lg group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                                    <span className="material-symbols-outlined text-xl">engineering</span>
+                                </div>
+                                <div>
+                                    <h4 className="font-bold text-slate-900 text-base">2.2 สมาชิกสามัญ</h4>
+                                </div>
+                            </div>
+                            <p className="text-xs text-slate-500 mb-3 leading-relaxed h-[4.5rem]">
+                                ได้แก่ บุคคลที่จบการศึกษาในระดับประกาศนียบัตรวิชาชีพชั้นสูง ปริญญาตรี หรือสูงกว่า ในสาขาที่เกี่ยวข้องกับการอุตสาหกรรมการก่อสร้ง และจัดการอาคาร
+                            </p>
+                            <div className="flex flex-col gap-1 text-right">
+                                <div className="text-xs text-slate-700 font-medium">รายปี <span className="font-bold text-indigo-700">400</span> บาท</div>
+                                <div className="text-xs text-slate-700 font-medium">ราย 3 ปี <span className="font-bold text-indigo-700">1,000</span> บาท</div>
+                            </div>
                         </div>
-                        <h3 className="font-bold text-slate-900 text-lg">สมาชิกวิสามัญ</h3>
-                    </div>
-                    <p className="text-sm text-slate-500 mb-6 min-h-[40px]">
-                        บุคคลในวงการก่อสร้าง/ห่วงโซ่อุปทาน หรือชาวต่างชาติที่เกี่ยวข้อง
-                    </p>
-                    <div className="space-y-3">
-                         <div className="flex justify-between items-center text-sm">
-                             <span className="text-slate-600">รายปี</span>
-                             <span className="font-bold text-slate-900">300 บาท</span>
-                         </div>
-                         <div className="flex justify-between items-center text-sm pt-3 border-t border-slate-100">
-                             <span className="text-emerald-600 font-medium">ราย 3 ปี</span>
-                             <span className="font-bold text-emerald-700">750 บาท</span>
-                         </div>
-                    </div>
-                </div>
 
-                {/* Associate (Student) */}
-                <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm hover:shadow-md hover:border-orange-200 transition-all group">
-                    <div className="flex items-center gap-3 mb-4">
-                        <div className="p-2.5 bg-orange-50 text-orange-600 rounded-xl group-hover:bg-orange-600 group-hover:text-white transition-colors">
-                            <span className="material-symbols-outlined">school</span>
+                        {/* Extraordinary */}
+                        <div className="bg-slate-50 rounded-2xl p-5 border border-slate-100 hover:border-emerald-200 transition-colors group">
+                            <div className="flex items-start gap-3 mb-2">
+                                <div className="p-2 bg-emerald-100 text-emerald-700 rounded-lg group-hover:bg-emerald-600 group-hover:text-white transition-colors">
+                                    <span className="material-symbols-outlined text-xl">public</span>
+                                </div>
+                                <div>
+                                    <h4 className="font-bold text-slate-900 text-base">2.3 สมาชิกวิสามัญ</h4>
+                                </div>
+                            </div>
+                            <p className="text-xs text-slate-500 mb-3 leading-relaxed h-[4.5rem]">
+                                ได้แก่ บุคคลที่เกี่ยวข้องกับวงการอุตสาหกรรมก่อสร้างและห่วงโซ่อุตสาหกรรม บุคคลต่างชาติที่ทำงานที่เกี่ยวข้อง
+                            </p>
+                            <div className="flex flex-col gap-1 text-right">
+                                <div className="text-xs text-slate-700 font-medium">รายปี <span className="font-bold text-emerald-700">300</span> บาท</div>
+                                <div className="text-xs text-slate-700 font-medium">ราย 3 ปี <span className="font-bold text-emerald-700">750</span> บาท</div>
+                            </div>
                         </div>
-                        <h3 className="font-bold text-slate-900 text-lg">สมาชิกสมทบ</h3>
-                    </div>
-                    <p className="text-sm text-slate-500 mb-6 min-h-[40px]">
-                        นักศึกษาในสาขาวิชาที่เกี่ยวข้อง
-                    </p>
-                    <div className="mt-auto">
-                        <div className="flex justify-between items-center text-sm p-3 bg-orange-50/50 rounded-lg border border-orange-100">
-                             <span className="text-orange-800 font-medium">รายปี</span>
-                             <span className="font-bold text-orange-800">100 บาท</span>
-                         </div>
-                    </div>
-                </div>
 
-                {/* Honorary */}
-                <div className="bg-gradient-to-r from-slate-50 to-white rounded-3xl p-6 border border-slate-200 shadow-sm flex flex-col justify-center group">
-                    <div className="flex items-center gap-3 mb-2">
-                        <div className="p-2.5 bg-yellow-50 text-yellow-600 rounded-xl group-hover:bg-yellow-400 group-hover:text-white transition-colors">
-                            <span className="material-symbols-outlined">workspace_premium</span>
+                        {/* Associate */}
+                        <div className="bg-slate-50 rounded-2xl p-5 border border-slate-100 hover:border-orange-200 transition-colors group">
+                            <div className="flex items-start gap-3 mb-2">
+                                <div className="p-2 bg-orange-100 text-orange-700 rounded-lg group-hover:bg-orange-600 group-hover:text-white transition-colors">
+                                    <span className="material-symbols-outlined text-xl">school</span>
+                                </div>
+                                <div>
+                                    <h4 className="font-bold text-slate-900 text-base">2.4 สมาชิกสมทบ</h4>
+                                </div>
+                            </div>
+                            <p className="text-xs text-slate-500 mb-3 leading-relaxed h-[4.5rem]">
+                                ได้แก่ บุคคลที่เป็นนักศึกษาในสาขาวิชาที่เกี่ยวข้องของสมาคม
+                            </p>
+                            <div className="mt-auto text-right pt-4">
+                                <div className="text-xs text-slate-700 font-medium">รายปี <span className="font-bold text-orange-700">100</span> บาท</div>
+                            </div>
                         </div>
-                        <h3 className="font-bold text-slate-900 text-lg">สมาชิกกิตติมศักดิ์</h3>
                     </div>
-                    <p className="text-sm text-slate-500 mb-4">
-                        ผู้ทรงคุณวุฒิหรือผู้มีอุปการะคุณที่คณะกรรมการเชิญ
-                    </p>
-                    <span className="inline-flex self-start items-center px-3 py-1.5 rounded-full text-xs font-bold bg-slate-900 text-white">
-                        ไม่มีค่าธรรมเนียม
-                    </span>
                 </div>
             </div>
           </div>
@@ -203,7 +215,7 @@ export const Landing: React.FC<LandingProps> = ({ setView }) => {
       {/* Registration Selection */}
       <div id="register-section" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 bg-slate-50 border-t border-slate-200">
         <div className="text-center mb-16">
-          <h2 className="text-3xl font-bold text-slate-900 mb-4">เลือกประเภทสมาชิกที่เหมาะกับคุณ</h2>
+          <h2 className="text-3xl font-bold text-slate-900 mb-4">เลือกเพื่อสมัครสมาชิก</h2>
           <div className="h-1.5 w-20 bg-primary-500 mx-auto rounded-full"></div>
         </div>
 
@@ -214,7 +226,7 @@ export const Landing: React.FC<LandingProps> = ({ setView }) => {
               <span className="material-symbols-outlined text-3xl">person</span>
             </div>
             <h3 className="text-2xl font-bold text-slate-900 mb-2">บุคคลทั่วไป (ไทย)</h3>
-            <p className="text-slate-500 text-sm mb-8">สำหรับสมาชิกสามัญ, สมาชิกวิสามัญ (ไทย) และสมาชิกสมทบ</p>
+            <p className="text-slate-500 text-sm mb-8">สำหรับสมาชิกสามัญ และสมาชิกสมทบ</p>
             <button 
               onClick={() => setView(ViewState.REGISTER_LOCAL)}
               className="w-full py-4 bg-indigo-50 text-indigo-700 font-bold rounded-xl group-hover:bg-indigo-600 group-hover:text-white transition-all shadow-sm mt-auto"

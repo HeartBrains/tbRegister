@@ -45,7 +45,7 @@ export const PrivacyModal: React.FC<PrivacyModalProps> = ({ isOpen, onClose, lan
               </div>
 
               <p>
-                This Privacy Notice explains how <strong>TBIM</strong> ("we," "us," or "our") collects, uses, and protects your personal data in accordance with the Personal Data Protection Act B.E. 2562 (PDPA) of Thailand.
+                This Privacy Notice explains how <strong>Thailand BIM Association (TBIM)</strong> ("we," "us," or "our") collects, uses, and protects your personal data in accordance with the Personal Data Protection Act B.E. 2562 (PDPA) of Thailand.
               </p>
 
               <div className="space-y-4">
@@ -116,7 +116,7 @@ export const PrivacyModal: React.FC<PrivacyModalProps> = ({ isOpen, onClose, lan
               </div>
 
               <p>
-                ประกาศนี้อธิบายถึงวิธีการที่ <strong>TBIM</strong> ("เรา") เก็บรวบรวม ใช้ และคุ้มครองข้อมูลส่วนบุคคลของคุณ เพื่อให้เป็นไปตามพระราชบัญญัติคุ้มครองข้อมูลส่วนบุคคล พ.ศ. 2562 (PDPA)
+                ประกาศนี้อธิบายถึงวิธีการที่ <strong>Thailand BIM Association (TBIM)</strong> ("เรา") เก็บรวบรวม ใช้ และคุ้มครองข้อมูลส่วนบุคคลของคุณ เพื่อให้เป็นไปตามพระราชบัญญัติคุ้มครองข้อมูลส่วนบุคคล พ.ศ. 2562 (PDPA)
               </p>
 
               <div className="space-y-4">
