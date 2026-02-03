@@ -45,7 +45,7 @@ export const PrivacyModal: React.FC<PrivacyModalProps> = ({ isOpen, onClose, lan
               </div>
 
               <p>
-                This Privacy Notice explains how <strong>Thailand BIM Association (TBIM)</strong> ("we," "us," or "our") collects, uses, and protects your personal data in accordance with the Personal Data Protection Act B.E. 2562 (PDPA) of Thailand.
+                This Privacy Notice explains how <strong>Thai BIM Association (TBIM)</strong> ("we," "us," or "our") collects, uses, and protects your personal data in accordance with the Personal Data Protection Act B.E. 2562 (PDPA) of Thailand.
               </p>
 
               <div className="space-y-4">
@@ -103,7 +103,7 @@ export const PrivacyModal: React.FC<PrivacyModalProps> = ({ isOpen, onClose, lan
                   <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 text-sm">
                     <p><strong>Contact Name:</strong> K.Satit P.</p>
                     <p><strong>Phone:</strong> 081-1529886</p>
-                    <p><strong>Email:</strong> satit_p@tbim.or.th</p>
+                    <p><strong>Email:</strong> tbim.asso@gmail.com</p>
                   </div>
                 </section>
               </div>
@@ -116,7 +116,7 @@ export const PrivacyModal: React.FC<PrivacyModalProps> = ({ isOpen, onClose, lan
               </div>
 
               <p>
-                ประกาศนี้อธิบายถึงวิธีการที่ <strong>Thailand BIM Association (TBIM)</strong> ("เรา") เก็บรวบรวม ใช้ และคุ้มครองข้อมูลส่วนบุคคลของคุณ เพื่อให้เป็นไปตามพระราชบัญญัติคุ้มครองข้อมูลส่วนบุคคล พ.ศ. 2562 (PDPA)
+                ประกาศนี้อธิบายถึงวิธีการที่ <strong>Thai BIM Association (TBIM)</strong> ("เรา") เก็บรวบรวม ใช้ และคุ้มครองข้อมูลส่วนบุคคลของคุณ เพื่อให้เป็นไปตามพระราชบัญญัติคุ้มครองข้อมูลส่วนบุคคล พ.ศ. 2562 (PDPA)
               </p>
 
               <div className="space-y-4">
@@ -174,7 +174,7 @@ export const PrivacyModal: React.FC<PrivacyModalProps> = ({ isOpen, onClose, lan
                   <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 text-sm">
                     <p><strong>ผู้ติดต่อ:</strong> K.Satit P.</p>
                     <p><strong>เบอร์โทรศัพท์:</strong> 081-1529886</p>
-                    <p><strong>อีเมล:</strong> satit_p@tbim.or.th</p>
+                    <p><strong>อีเมล:</strong> tbim.asso@gmail.com</p>
                   </div>
                 </section>
               </div>

@@ -7,6 +7,7 @@ import { PrivacyModal } from '../components/PrivacyModal';
 interface RegProps {
   setView: (view: ViewState) => void;
   onSuccess: (data: any) => void;
+  defaultStudent?: boolean;
 }
 
 const isNumeric = (val: string) => /^\d+$/.test(val.replace(/[-\s]/g, ''));
@@ -517,7 +518,7 @@ const TaxIdField = ({
 // ----------------------------------------------------------------------
 // Local (Thai) Registration
 // ----------------------------------------------------------------------
-export const RegisterLocal: React.FC<RegProps> = ({ setView, onSuccess }) => {
+export const RegisterLocal: React.FC<RegProps> = ({ setView, onSuccess, defaultStudent = false }) => {
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -525,9 +526,10 @@ export const RegisterLocal: React.FC<RegProps> = ({ setView, onSuccess }) => {
   const [isPhoneAvailable, setIsPhoneAvailable] = useState(false);
   const [showPrivacy, setShowPrivacy] = useState(false);
 
+  // Default to professional if defaultStudent is not true, matching user request
   const [formData, setFormData] = useState({
     first_name: '', last_name: '', national_id: '', nationality: 'ไทย', date_of_birth: '', gender: '', phone: '', email: '', address: '',
-    education_status: 'professional', workplace_name: '', position: '', job_nature: 'design', work_address: '',
+    education_status: defaultStudent ? 'student' : 'professional', workplace_name: '', position: '', job_nature: 'design', work_address: '',
     degree: '', faculty: '', major: '', year_of_entry: '', institution: '', student_id: '',
     student_id_card: null as File | null,
     company_certificate: null as File | null,
@@ -799,17 +801,6 @@ export const RegisterLocal: React.FC<RegProps> = ({ setView, onSuccess }) => {
                       <label className="block text-sm font-medium text-slate-700 mb-1">ที่อยู่ที่ทำงาน <span className="text-red-500">*</span></label>
                       <textarea name="work_address" rows={2} required value={formData.work_address} onChange={handleChange} className="block w-full rounded-xl border-slate-200 p-3 border bg-slate-50 outline-none focus:ring-2 focus:ring-primary-500"></textarea>
                     </div>
-                    <div className="sm:col-span-2">
-                      <label className="block text-sm font-medium text-slate-700 mb-1">หนังสือรับรองการทำงาน / บัตรพนักงาน (Work/Company Certificate) <span className="text-red-500">*</span> <span className="text-slate-400 text-xs font-normal">(Max 10MB - PDF, Doc, Image, Zip)</span></label>
-                      <input 
-                        name="company_certificate" 
-                        type="file" 
-                        required 
-                        accept=".jpg,.jpeg,.png,.pdf,.doc,.docx,.zip"
-                        onChange={handleChange} 
-                        className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100 transition-all cursor-pointer" 
-                      />
-                    </div>
                   </div>
                 ) : (
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 animate-in fade-in duration-500">
@@ -905,119 +896,111 @@ export const RegisterLocal: React.FC<RegProps> = ({ setView, onSuccess }) => {
 };
 
 // ----------------------------------------------------------------------
-// Foreign Registration
+// Foreign Registration (Individual)
 // ----------------------------------------------------------------------
 export const RegisterForeign: React.FC<RegProps> = ({ setView, onSuccess }) => {
+  const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isEmailAvailable, setIsEmailAvailable] = useState(false);
   const [isPhoneAvailable, setIsPhoneAvailable] = useState(false);
   const [showPrivacy, setShowPrivacy] = useState(false);
-  
+
   const [formData, setFormData] = useState({
-    'first-name': '',
-    'last-name': '',
-    'passport-number': '', 
-    'nationality': '', 
-    'date-of-birth': '', 
-    'gender': '', 
-    'phone-number': '', 
-    'email': '', 
-    'residential-address': '', 
-    'workplace-name': '', 
-    'job-position': '', 
-    'nature-of-work': '', 
-    'work-address': '', 
-    'password': '', 
-    'confirm-password': '', 
-    'security-question': '', 
-    'security-answer': '', 
-    'pdpa-consent': false
+    first_name: '', last_name: '', passport_id: '', nationality: '', date_of_birth: '', gender: '', phone: '', email: '', address: '',
+    workplace_name: '', position: '', job_nature: '', work_address: '',
+    security_question: '', security_answer: '', password: '', confirm_password: '', pdpa_consent: false
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
-    const val = type === 'checkbox' ? (e.target as HTMLInputElement).checked : value;
-    setFormData(prev => ({ ...prev, [name]: val }));
+    // Foreign registration doesn't use file input anymore, so simplified handler
+    if (type === 'checkbox') {
+       setFormData(prev => ({ ...prev, [name]: (e.target as HTMLInputElement).checked }));
+    } else {
+       setFormData(prev => ({ ...prev, [name]: value }));
+    }
+  };
+
+  const handleNext = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!isPhoneAvailable) {
+      setError("Please use a phone number that is not already registered.");
+      return;
+    }
+    if (!isEmailAvailable) {
+      setError("Please use an email that is not already registered.");
+      return;
+    }
+    setError(null);
+    setStep(2);
+    window.scrollTo(0, 0);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!isEmailAvailable) {
-      setError("This email is already registered.");
+    if (formData.password.length < 8) {
+      setError("Password must be at least 8 characters long.");
       return;
     }
-    
-    if (!isPhoneAvailable) {
-      setError("This phone number is already registered.");
+    if (formData.password !== formData.confirm_password) {
+      setError("Passwords do not match.");
       return;
     }
-
-    if (!isNumeric(formData['phone-number'])) {
-      setError("Phone number must contain only numbers (0-9)");
-      return;
-    }
-    
-    if (formData['password'].length < 8) {
-      setError("Password must be at least 8 characters");
-      return;
-    }
-    
-    if (formData['password'] !== formData['confirm-password']) {
-      setError("Passwords do not match");
-      return;
-    }
-    
-    if (!formData['pdpa-consent']) {
-      setError("Please accept the PDPA consent");
+    if (!formData.pdpa_consent) {
+      setError("Please accept the PDPA consent.");
       return;
     }
 
     setLoading(true);
     setError(null);
-    
+
     try {
       const authHeader = btoa('USERNAME:APPLICATION_PASSWORD');
+      const payload = new FormData();
       
-      const payload = {
-        'name': formData['first-name'],
-        'surname': formData['last-name'],
-        'cal-fullname': `${formData['first-name']} ${formData['last-name']}`,
-        'passport-number': formData['passport-number'],
-        'nationality': formData['nationality'],
-        'date-of-birth': formData['date-of-birth'],
-        'gender': formData['gender'],
-        'phone-number': formData['phone-number'],
-        'email': formData['email'],
-        'residential-address': formData['residential-address'],
-        'workplace-name': formData['workplace-name'],
-        'job-position': formData['job-position'],
-        'nature-of-work': formData['nature-of-work'],
-        'work-address': formData['work-address'],
-        'password': formData['password'],
-        'confirm-password': formData['confirm-password'],
-        'security-question': formData['security-question'],
-        'security_answer': formData['security-answer'], // Changed key to underscore as requested
-        'account_status': 'Pending', // Added account_status
-        'pdpa-consent': formData['pdpa-consent'] ? '1' : '0'
-      };
+      // Update with exact field names from requirements
+      payload.append('name', formData.first_name);
+      payload.append('surname', formData.last_name);
+      payload.append('cal-fullname', `${formData.first_name} ${formData.last_name}`);
+      
+      payload.append('passport-number', formData.passport_id);
+      payload.append('nationality', formData.nationality);
+      payload.append('date-of-birth', formData.date_of_birth);
+      payload.append('gender', formData.gender);
+      payload.append('phone-number', formData.phone);
+      payload.append('email', formData.email);
+      payload.append('residential-address', formData.address);
+      
+      payload.append('workplace-name', formData.workplace_name);
+      payload.append('job-position', formData.position);
+      payload.append('nature-of-work', formData.job_nature);
+      payload.append('work-address', formData.work_address);
+      
+      payload.append('password', formData.password);
+      payload.append('confirm-password', formData.confirm_password);
+      payload.append('security-question', formData.security_question);
+      payload.append('security_answer', formData.security_answer);
+      payload.append('account_status', 'pending');
+      payload.append('pdpa-consent', formData.pdpa_consent ? '1' : '0'); 
+      
+      // Passport image upload removed
 
       const response = await fetch(API_ENDPOINTS.REGISTER_FOREIGN, {
         method: 'POST',
         headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Basic ${authHeader}`,
-          'Accept': 'application/json'
+          'Accept': 'application/json',
+          'Authorization': `Basic ${authHeader}`
         },
-        body: JSON.stringify(payload)
+        body: payload
       });
-      
+
       if (!response.ok && response.status !== 0) throw new Error('API Error');
-      
+
       await new Promise(r => setTimeout(r, 1000));
       onSuccess(formData);
-    } catch (err) {
+    } catch (err: any) {
       console.warn("API submission failed, proceeding with demo success state", err);
       await new Promise(r => setTimeout(r, 1500));
       onSuccess(formData);
@@ -1028,152 +1011,168 @@ export const RegisterForeign: React.FC<RegProps> = ({ setView, onSuccess }) => {
     <div className="w-full bg-slate-50 min-h-screen pb-20 font-sans">
       <PrivacyModal isOpen={showPrivacy} onClose={() => setShowPrivacy(false)} language="en" />
       <div className="max-w-4xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-10"><h1 className="text-4xl font-extrabold text-slate-900 mb-3 tracking-tight">Foreign Member Registration</h1></div>
+        <div className="flex items-center justify-center mb-10">
+          <div className="flex items-center w-full max-w-xs">
+            <div className={`flex items-center justify-center w-10 h-10 rounded-full font-bold transition-all ${step >= 1 ? 'bg-emerald-600 text-white shadow-lg' : 'bg-slate-200 text-slate-500'}`}>1</div>
+            <div className={`flex-grow h-1 mx-2 rounded transition-all ${step >= 2 ? 'bg-emerald-600' : 'bg-slate-200'}`}></div>
+            <div className={`flex items-center justify-center w-10 h-10 rounded-full font-bold transition-all ${step >= 2 ? 'bg-emerald-600 text-white shadow-lg' : 'bg-slate-200 text-slate-500'}`}>2</div>
+          </div>
+        </div>
+
+        <div className="text-center mb-10">
+          <h1 className="text-3xl md:text-4xl font-extrabold text-slate-900 mb-3 tracking-tight">Foreign Member Registration</h1>
+          <p className="text-slate-500 font-medium">{step === 1 ? 'Personal Information' : 'Work & Account Information'}</p>
+        </div>
+
         {error && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-xl flex items-start shadow-sm animate-bounce">
-            <span className="material-symbols-outlined mr-2">warning</span>
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-xl flex items-start animate-bounce shadow-sm">
+            <span className="material-symbols-outlined mr-2 text-xl">warning</span>
             <p className="text-sm font-bold">{error}</p>
           </div>
         )}
+
         <div className="bg-white p-8 sm:p-12 rounded-3xl shadow-xl border border-slate-100">
-          <form onSubmit={handleSubmit} className="space-y-10">
-             <div>
-                <h3 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
-                  <span className="material-symbols-outlined text-primary-600">person</span>
-                  Personal Information
-                </h3>
-                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">First Name <span className="text-red-500">*</span></label>
-                    <input type="text" name="first-name" value={formData['first-name']} onChange={handleChange} required className="block w-full rounded-xl border-slate-200 p-3 border bg-slate-50 outline-none focus:ring-2 focus:ring-primary-500 transition-all" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Last Name <span className="text-red-500">*</span></label>
-                    <input type="text" name="last-name" value={formData['last-name']} onChange={handleChange} required className="block w-full rounded-xl border-slate-200 p-3 border bg-slate-50 outline-none focus:ring-2 focus:ring-primary-500 transition-all" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Passport Number <span className="text-red-500">*</span></label>
-                    <input type="text" name="passport-number" value={formData['passport-number']} onChange={handleChange} required className="block w-full rounded-xl border-slate-200 p-3 border bg-slate-50 outline-none focus:ring-2 focus:ring-primary-500 transition-all" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Nationality <span className="text-red-500">*</span></label>
-                    <input type="text" name="nationality" value={formData['nationality']} onChange={handleChange} required className="block w-full rounded-xl border-slate-200 p-3 border bg-slate-50 outline-none focus:ring-2 focus:ring-primary-500 transition-all" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Date of Birth <span className="text-red-500">*</span></label>
-                    <input type="date" name="date-of-birth" value={formData['date-of-birth']} onChange={handleChange} required className="block w-full rounded-xl border-slate-200 p-3 border bg-slate-50 outline-none focus:ring-2 focus:ring-primary-500 transition-all" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Gender <span className="text-red-500">*</span></label>
-                    <select name="gender" value={formData['gender']} onChange={handleChange} required className="block w-full rounded-xl border-slate-200 p-3 border bg-slate-50 outline-none focus:ring-2 focus:ring-primary-500 transition-all">
-                      <option value="">Select Gender</option>
-                      <option value="male">Male</option>
-                      <option value="female">Female</option>
-                      <option value="other">Other</option>
-                    </select>
-                  </div>
-                  <div>
-                    <PhoneField 
-                      label="Phone Number" 
-                      name="phone-number" 
-                      value={formData['phone-number']} 
-                      onChange={handleChange} 
-                      onValidationChange={setIsPhoneAvailable}
-                      placeholder="Numbers only (0-9)"
-                      isEn={true}
-                    />
-                  </div>
-                  <div>
-                    <EmailField 
-                      label="Email" 
-                      name="email" 
-                      value={formData['email']} 
-                      onChange={handleChange} 
-                      onValidationChange={setIsEmailAvailable}
-                      placeholder="example@mail.com" 
-                      isEn={true} 
-                    />
-                  </div>
-                  <div className="sm:col-span-2">
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Residential Address <span className="text-red-500">*</span></label>
-                    <textarea name="residential-address" rows={2} value={formData['residential-address']} onChange={handleChange} required className="block w-full rounded-xl border-slate-200 p-3 border bg-slate-50 outline-none focus:ring-2 focus:ring-primary-500 transition-all"></textarea>
-                  </div>
+          {step === 1 ? (
+            <form onSubmit={handleNext} className="space-y-6">
+              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">First Name <span className="text-red-500">*</span></label>
+                  <input name="first_name" type="text" required value={formData.first_name} onChange={handleChange} className="block w-full rounded-xl border-slate-200 p-3 border bg-slate-50 outline-none focus:ring-2 focus:ring-emerald-500 transition-all" placeholder="First Name" />
                 </div>
-             </div>
-
-             <div>
-                <h3 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
-                  <span className="material-symbols-outlined text-primary-600">work</span>
-                  Professional Information
-                </h3>
-                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                  <div className="sm:col-span-2">
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Workplace Name <span className="text-red-500">*</span></label>
-                    <input type="text" name="workplace-name" value={formData['workplace-name']} onChange={handleChange} required className="block w-full rounded-xl border-slate-200 p-3 border bg-slate-50 outline-none focus:ring-2 focus:ring-primary-500 transition-all" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Job Position <span className="text-red-500">*</span></label>
-                    <input type="text" name="job-position" value={formData['job-position']} onChange={handleChange} required className="block w-full rounded-xl border-slate-200 p-3 border bg-slate-50 outline-none focus:ring-2 focus:ring-primary-500 transition-all" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Nature of Work <span className="text-red-500">*</span></label>
-                    <input type="text" name="nature-of-work" value={formData['nature-of-work']} onChange={handleChange} required className="block w-full rounded-xl border-slate-200 p-3 border bg-slate-50 outline-none focus:ring-2 focus:ring-primary-500 transition-all" />
-                  </div>
-                  <div className="sm:col-span-2">
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Work Address <span className="text-red-500">*</span></label>
-                    <textarea name="work-address" rows={2} value={formData['work-address']} onChange={handleChange} required className="block w-full rounded-xl border-slate-200 p-3 border bg-slate-50 outline-none focus:ring-2 focus:ring-primary-500 transition-all"></textarea>
-                  </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Last Name <span className="text-red-500">*</span></label>
+                  <input name="last_name" type="text" required value={formData.last_name} onChange={handleChange} className="block w-full rounded-xl border-slate-200 p-3 border bg-slate-50 outline-none focus:ring-2 focus:ring-emerald-500 transition-all" placeholder="Last Name" />
                 </div>
-             </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Passport ID <span className="text-red-500">*</span></label>
+                  <input name="passport_id" type="text" required value={formData.passport_id} onChange={handleChange} className="block w-full rounded-xl border-slate-200 p-3 border bg-slate-50 outline-none focus:ring-2 focus:ring-emerald-500 transition-all" placeholder="Passport Number" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Nationality <span className="text-red-500">*</span></label>
+                  <input name="nationality" type="text" required value={formData.nationality} onChange={handleChange} className="block w-full rounded-xl border-slate-200 p-3 border bg-slate-50 outline-none focus:ring-2 focus:ring-emerald-500 transition-all" placeholder="Nationality" />
+                </div>
+                <div>
+                  <PhoneField 
+                    label="Phone Number"
+                    name="phone" 
+                    value={formData.phone} 
+                    onChange={handleChange} 
+                    onValidationChange={setIsPhoneAvailable}
+                    placeholder="Numbers only" 
+                    isEn={true}
+                  />
+                </div>
+                <div className="sm:col-span-2">
+                  <EmailField 
+                    label="Email Address" 
+                    name="email" 
+                    value={formData.email} 
+                    onChange={handleChange} 
+                    onValidationChange={setIsEmailAvailable}
+                    placeholder="example@mail.com" 
+                    isEn={true}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Date of Birth <span className="text-red-500">*</span></label>
+                  <input name="date_of_birth" type="date" required value={formData.date_of_birth} onChange={handleChange} className="block w-full rounded-xl border-slate-200 p-3 border bg-slate-50 outline-none focus:ring-2 focus:ring-emerald-500 transition-all" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Gender <span className="text-red-500">*</span></label>
+                  <select name="gender" required value={formData.gender} onChange={handleChange} className="block w-full rounded-xl border-slate-200 p-3 border bg-slate-50 outline-none focus:ring-2 focus:ring-emerald-500 transition-all">
+                    <option value="">Select Gender</option>
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                    <option value="other">Other</option>
+                  </select>
+                </div>
+                <div className="sm:col-span-2">
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Address <span className="text-red-500">*</span></label>
+                  <textarea name="address" rows={3} required value={formData.address} onChange={handleChange} className="block w-full rounded-xl border-slate-200 p-3 border bg-slate-50 outline-none focus:ring-2 focus:ring-emerald-500 transition-all" placeholder="House No, Street, City, Country, Zip Code"></textarea>
+                </div>
+              </div>
+              <button 
+                type="submit" 
+                className="w-full py-4 bg-emerald-600 text-white font-bold rounded-xl shadow-lg hover:bg-emerald-700 transform hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2"
+              >
+                Next Step
+                <span className="material-symbols-outlined">arrow_forward</span>
+              </button>
+            </form>
+          ) : (
+            <form onSubmit={handleSubmit} className="space-y-8">
+              <div className="space-y-6">
+                <h3 className="text-xl font-bold text-slate-800 flex items-center gap-2">
+                  <span className="material-symbols-outlined text-emerald-600">work</span>
+                  Work Information
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                   <div className="sm:col-span-2">
+                      <label className="block text-sm font-medium text-slate-700 mb-1">Workplace Name <span className="text-red-500">*</span></label>
+                      <input name="workplace_name" type="text" required value={formData.workplace_name} onChange={handleChange} className="block w-full rounded-xl border-slate-200 p-3 border bg-slate-50 outline-none focus:ring-2 focus:ring-emerald-500" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1">Position <span className="text-red-500">*</span></label>
+                      <input name="position" type="text" required value={formData.position} onChange={handleChange} className="block w-full rounded-xl border-slate-200 p-3 border bg-slate-50 outline-none focus:ring-2 focus:ring-emerald-500" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1">Job Nature <span className="text-red-500">*</span></label>
+                      <input name="job_nature" type="text" required value={formData.job_nature} onChange={handleChange} className="block w-full rounded-xl border-slate-200 p-3 border bg-slate-50 outline-none focus:ring-2 focus:ring-emerald-500" />
+                    </div>
+                    <div className="sm:col-span-2">
+                      <label className="block text-sm font-medium text-slate-700 mb-1">Workplace Address <span className="text-red-500">*</span></label>
+                      <textarea name="work_address" rows={2} required value={formData.work_address} onChange={handleChange} className="block w-full rounded-xl border-slate-200 p-3 border bg-slate-50 outline-none focus:ring-2 focus:ring-emerald-500"></textarea>
+                    </div>
+                    {/* Passport Image Upload Removed */}
+                </div>
+              </div>
 
-             <div>
+              {/* Credential Section */}
+              <div>
                 <h3 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
-                  <span className="material-symbols-outlined text-primary-600">lock</span>
+                  <span className="material-symbols-outlined text-emerald-600">lock</span>
                   Account Settings
                 </h3>
                 <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Password (min 8 chars) <span className="text-red-500">*</span></label>
-                    <input type="password" name="password" value={formData['password']} onChange={handleChange} required minLength={8} className="block w-full rounded-xl border-slate-200 p-3 border bg-slate-50 outline-none focus:ring-2 focus:ring-primary-500 transition-all" placeholder="••••••••" />
+                    <label className="block text-sm font-medium text-slate-700 mb-1">Password (Min 8 chars) <span className="text-red-500">*</span></label>
+                    <input name="password" type="password" required minLength={8} value={formData.password} onChange={handleChange} className="block w-full rounded-xl border-slate-200 p-3 border bg-slate-50 outline-none focus:ring-2 focus:ring-emerald-500" placeholder="••••••••" />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-1">Confirm Password <span className="text-red-500">*</span></label>
-                    <input type="password" name="confirm-password" value={formData['confirm-password']} onChange={handleChange} required minLength={8} className="block w-full rounded-xl border-slate-200 p-3 border bg-slate-50 outline-none focus:ring-2 focus:ring-primary-500 transition-all" placeholder="••••••••" />
+                    <input name="confirm_password" type="password" required minLength={8} value={formData.confirm_password} onChange={handleChange} className="block w-full rounded-xl border-slate-200 p-3 border bg-slate-50 outline-none focus:ring-2 focus:ring-emerald-500" placeholder="••••••••" />
                   </div>
                 </div>
-             </div>
+              </div>
 
-             <SecurityQuestionsSection 
-                value={formData['security-question']} 
-                answer={formData['security-answer']} 
-                onChange={handleChange} 
-                isEn={true} 
-                questionName="security-question" 
-                answerName="security-answer" 
-             />
-             <PDPASection checked={formData['pdpa-consent']} onChange={handleChange} name="pdpa-consent" isEn={true} onOpenPrivacy={() => setShowPrivacy(true)} />
+              <SecurityQuestionsSection value={formData.security_question} answer={formData.security_answer} onChange={handleChange} isEn={true} />
+              <PDPASection checked={formData.pdpa_consent} onChange={handleChange} onOpenPrivacy={() => setShowPrivacy(true)} isEn={true} />
 
-             <div className="flex justify-between items-center pt-8 border-t border-slate-100">
-                <button type="button" onClick={() => setView(ViewState.LANDING)} className="px-8 py-3 text-slate-500 font-bold hover:text-slate-800 hover:bg-slate-50 rounded-xl transition-all" disabled={loading}>Cancel</button>
-                <button 
+              <div className="flex justify-between items-center pt-8 border-t border-slate-100">
+                 <button type="button" onClick={() => setStep(1)} className="px-8 py-3 text-slate-500 font-bold hover:text-slate-800 hover:bg-slate-50 rounded-xl transition-all flex items-center gap-1">
+                   <span className="material-symbols-outlined">arrow_back</span>
+                   Back
+                 </button>
+                 <button 
                   type="submit" 
                   disabled={loading} 
-                  className="px-10 py-4 bg-emerald-600 text-white font-bold rounded-xl shadow-lg disabled:bg-slate-400 hover:bg-emerald-700 transform hover:-translate-y-0.5 transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
-                >
-                  {loading ? (
-                    <>
-                      <span className="material-symbols-outlined animate-spin text-sm">sync</span>
-                      Processing...
-                    </>
-                  ) : (
-                    <>
-                      <span className="material-symbols-outlined text-sm">how_to_reg</span>
-                      Register Now
-                    </>
-                  )}
-                </button>
-             </div>
-          </form>
+                  className="px-10 py-3 bg-emerald-600 text-white font-bold rounded-xl shadow-lg disabled:bg-slate-400 hover:bg-emerald-700 transform hover:-translate-y-0.5 transition-all flex items-center gap-2"
+                 >
+                   {loading ? (
+                     <>
+                       <span className="material-symbols-outlined animate-spin">sync</span>
+                       Processing...
+                     </>
+                   ) : (
+                     <>
+                       <span className="material-symbols-outlined">how_to_reg</span>
+                       Register
+                     </>
+                   )}
+                 </button>
+              </div>
+            </form>
+          )}
         </div>
       </div>
     </div>
@@ -1184,33 +1183,42 @@ export const RegisterForeign: React.FC<RegProps> = ({ setView, onSuccess }) => {
 // Corporate Registration
 // ----------------------------------------------------------------------
 export const RegisterCorporate: React.FC<RegProps> = ({ setView, onSuccess }) => {
+  const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [isEmailAvailable, setIsEmailAvailable] = useState(false);
-  const [isRepEmailAvailable, setIsRepEmailAvailable] = useState(false);
-  const [isRepPhoneAvailable, setIsRepPhoneAvailable] = useState(false);
+  
+  // Validation States
   const [isTaxIdAvailable, setIsTaxIdAvailable] = useState(false);
+  const [isCorporateEmailAvailable, setIsCorporateEmailAvailable] = useState(false);
+  const [isRepPhoneAvailable, setIsRepPhoneAvailable] = useState(false);
+  const [isRepEmailAvailable, setIsRepEmailAvailable] = useState(false);
+  
   const [showPrivacy, setShowPrivacy] = useState(false);
 
   const [formData, setFormData] = useState({
-    'organization-name': '',
-    'tax-id': '',
-    'business-type': 'รัฐวิสาหกิจ/ราชการ',
-    'business-scope': '',
-    'corporate-email': '',
-    'corporate-address': '',
-    'company-certificate': null as File | null,
-    'representative-first-name': '',
-    'representative-last-name': '',
-    'national-id': '',
-    'representative-phone': '',
-    'representative-email': '',
-    'representative-address': '',
-    'security-question': '',
-    'security-answer': '',
-    'pdpa-consent': false,
-    'password': '',
-    'confirm-password': ''
+    // Organization Info
+    org_name: '',
+    tax_id: '',
+    business_type: '',
+    business_scope: '',
+    corporate_email: '',
+    corporate_address: '',
+    company_certificate: null as File | null,
+
+    // Representative Info
+    rep_name: '',
+    rep_surname: '',
+    rep_national_id: '',
+    rep_phone: '',
+    rep_email: '',
+    rep_address: '',
+
+    // Account & Security
+    password: '',
+    confirm_password: '',
+    security_question: '',
+    security_answer: '',
+    pdpa_consent: false
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -1218,9 +1226,9 @@ export const RegisterCorporate: React.FC<RegProps> = ({ setView, onSuccess }) =>
     if (type === 'file') {
       const files = (e.target as HTMLInputElement).files;
       if (files && files[0]) {
-        if (files[0].size > 10 * 1024 * 1024) { // 10MB
-          setError("ขนาดไฟล์ต้องไม่เกิน 10MB (File size must not exceed 10MB)");
-          (e.target as HTMLInputElement).value = ''; // Reset file input
+        if (files[0].size > 10 * 1024 * 1024) { 
+          setError("ขนาดไฟล์ต้องไม่เกิน 10MB");
+          (e.target as HTMLInputElement).value = ''; 
           setFormData(prev => ({ ...prev, [name]: null }));
         } else {
           setError(null);
@@ -1235,42 +1243,46 @@ export const RegisterCorporate: React.FC<RegProps> = ({ setView, onSuccess }) =>
     }
   };
 
+  const handleNext = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!isTaxIdAvailable) {
+      setError("กรุณาตรวจสอบเลขประจำตัวผู้เสียภาษี (อาจมีการใช้งานแล้ว หรือรูปแบบไม่ถูกต้อง)");
+      return;
+    }
+    if (!isCorporateEmailAvailable) {
+       setError("กรุณาใช้อีเมลองค์กรที่ยังไม่ถูกลงทะเบียน");
+       return;
+    }
+    setError(null);
+    setStep(2);
+    window.scrollTo(0, 0);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!isEmailAvailable || !isRepEmailAvailable) {
-      setError("กรุณาตรวจสอบอีเมล พบว่ามีการใช้งานแล้วในระบบ");
-      return;
-    }
-    
+    // Basic validations
     if (!isRepPhoneAvailable) {
-      setError("กรุณาตรวจสอบเบอร์โทรศัพท์ผู้แทน พบว่ามีการใช้งานแล้วในระบบ");
+      setError("กรุณาตรวจสอบเบอร์โทรศัพท์ผู้แทน");
+      return;
+    }
+    // Allow representative email to be same as corporate if user wants, 
+    // but typically we check availability if it's used as login.
+    // If rep email is used for login, it must be unique. Assuming yes.
+    if (!isRepEmailAvailable) {
+      setError("กรุณาใช้อีเมลผู้แทนที่ยังไม่ถูกลงทะเบียน");
       return;
     }
 
-    if (!isTaxIdAvailable) {
-      setError("กรุณาตรวจสอบเลขประจำตัวผู้เสียภาษี พบว่ามีการใช้งานแล้วในระบบ");
-      return;
-    }
-
-    if (!isNumeric(formData['tax-id'])) {
-      setError("เลขประจำตัวผู้เสียภาษีต้องเป็นตัวเลขเท่านั้น");
-      return;
-    }
-
-    if (!isNumeric(formData['representative-phone'])) {
-      setError("เบอร์โทรศัพท์ต้องเป็นตัวเลขเท่านั้น");
-      return;
-    }
-    if (formData['password'].length < 8) {
+    if (formData.password.length < 8) {
       setError("รหัสผ่านต้องมีความยาวอย่างน้อย 8 ตัวอักษร");
       return;
     }
-    if (formData['password'] !== formData['confirm-password']) {
+    if (formData.password !== formData.confirm_password) {
       setError("รหัสผ่านไม่ตรงกัน");
       return;
     }
-    if (!formData['pdpa-consent']) {
+    if (!formData.pdpa_consent) {
       setError("กรุณายอมรับเงื่อนไข PDPA");
       return;
     }
@@ -1281,48 +1293,36 @@ export const RegisterCorporate: React.FC<RegProps> = ({ setView, onSuccess }) =>
     try {
       const authHeader = btoa('USERNAME:APPLICATION_PASSWORD');
       const payload = new FormData();
+
+      // --- Map to API Fields requested ---
+      payload.append('organization-name', formData.org_name);
+      payload.append('tax-id', formData.tax_id);
+      payload.append('business-type', formData.business_type);
+      payload.append('business-scope', formData.business_scope);
+      payload.append('corporate-email', formData.corporate_email);
+      payload.append('corporate-address', formData.corporate_address);
       
-      // Explicit mapping based on request
-      payload.append('organization-name', formData['organization-name']);
-      payload.append('tax-id', formData['tax-id']);
-      payload.append('business-type', formData['business-type']);
-      payload.append('business-scope', formData['business-scope']);
-      payload.append('corporate-email', formData['corporate-email']);
-      payload.append('corporate-address', formData['corporate-address']);
-      
-      // Certificate file
-      if (formData['company-certificate']) {
-        const orgName = formData['organization-name'] || 'company';
-        const fName = formData['representative-first-name'] || 'firstname';
-        const lName = formData['representative-last-name'] || 'lastname';
-        
-        const cleanOrgName = orgName.trim().replace(/[^a-zA-Z0-9ก-๙]/g, '');
-        const cleanFName = fName.trim().replace(/[^a-zA-Z0-9ก-๙]/g, '');
-        const cleanLName = lName.trim().replace(/[^a-zA-Z0-9ก-๙]/g, '');
-        
-        // Include company name at the front of the filename
-        const newFileName = `${cleanOrgName}_company-certificate_${cleanFName}_${cleanLName}_${formData['company-certificate'].name}`;
-        const renamedFile = new File([formData['company-certificate']], newFileName, { type: formData['company-certificate'].type });
+      // File rename logic for certificate
+      if (formData.company_certificate) {
+        const orgNameClean = formData.org_name.trim().replace(/[^a-zA-Z0-9ก-๙]/g, '');
+        const newFileName = `cert_${orgNameClean}_${formData.company_certificate.name}`;
+        const renamedFile = new File([formData.company_certificate], newFileName, { type: formData.company_certificate.type });
         payload.append('company-certificate', renamedFile);
       }
 
-      payload.append('representative-name', formData['representative-first-name']);
-      payload.append('representative-surname', formData['representative-last-name']);
-      payload.append('rep-fullname', `${formData['representative-first-name']} ${formData['representative-last-name']}`);
+      payload.append('representative-name', formData.rep_name);
+      payload.append('representative-surname', formData.rep_surname);
+      payload.append('rep-fullname', `${formData.rep_name} ${formData.rep_surname}`);
+      payload.append('national-id', formData.rep_national_id);
+      payload.append('representative-phone', formData.rep_phone);
+      payload.append('representative-email', formData.rep_email);
+      payload.append('representative-address', formData.rep_address);
       
-      payload.append('national-id', formData['national-id']);
-      payload.append('representative-phone', formData['representative-phone']);
-      payload.append('representative-email', formData['representative-email']);
-      payload.append('representative-address', formData['representative-address']);
-      
-      payload.append('password', formData['password']);
-      payload.append('confirm-password', formData['confirm-password']);
-      
-      payload.append('security-question', formData['security-question']);
-      payload.append('security-answer', formData['security-answer']);
-      
-      payload.append('account_status', 'Pending');
-      payload.append('pdpa-consent', formData['pdpa-consent'] ? '1' : '0');
+      payload.append('password', formData.password);
+      payload.append('confirm-password', formData.confirm_password);
+      payload.append('security-question', formData.security_question);
+      payload.append('security-answer', formData.security_answer);
+      payload.append('pdpa-consent', formData.pdpa_consent ? '1' : '0');
 
       const response = await fetch(API_ENDPOINTS.REGISTER_CORPORATE, {
         method: 'POST',
@@ -1337,7 +1337,7 @@ export const RegisterCorporate: React.FC<RegProps> = ({ setView, onSuccess }) =>
 
       await new Promise(r => setTimeout(r, 1000));
       onSuccess(formData);
-    } catch (err) {
+    } catch (err: any) {
       console.warn("API submission failed, proceeding with demo success state", err);
       await new Promise(r => setTimeout(r, 1500));
       onSuccess(formData);
@@ -1348,157 +1348,204 @@ export const RegisterCorporate: React.FC<RegProps> = ({ setView, onSuccess }) =>
     <div className="w-full bg-slate-50 min-h-screen pb-20 font-sans">
       <PrivacyModal isOpen={showPrivacy} onClose={() => setShowPrivacy(false)} language="th" />
       <div className="max-w-4xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-10"><h1 className="text-3xl md:text-4xl font-extrabold text-slate-900 mb-3 tracking-tight">ลงทะเบียนสมาชิกนิติบุคคล</h1></div>
+        {/* Stepper */}
+        <div className="flex items-center justify-center mb-10">
+          <div className="flex items-center w-full max-w-xs">
+            <div className={`flex items-center justify-center w-10 h-10 rounded-full font-bold transition-all ${step >= 1 ? 'bg-blue-600 text-white shadow-lg' : 'bg-slate-200 text-slate-500'}`}>1</div>
+            <div className={`flex-grow h-1 mx-2 rounded transition-all ${step >= 2 ? 'bg-blue-600' : 'bg-slate-200'}`}></div>
+            <div className={`flex items-center justify-center w-10 h-10 rounded-full font-bold transition-all ${step >= 2 ? 'bg-blue-600 text-white shadow-lg' : 'bg-slate-200 text-slate-500'}`}>2</div>
+          </div>
+        </div>
+
+        <div className="text-center mb-10">
+          <h1 className="text-3xl md:text-4xl font-extrabold text-slate-900 mb-3 tracking-tight">ลงทะเบียนสมาชิกนิติบุคคล</h1>
+          <p className="text-slate-500 font-medium">{step === 1 ? 'ข้อมูลองค์กร (Organization Info)' : 'ข้อมูลผู้แทน & บัญชี (Representative Info)'}</p>
+        </div>
+
         {error && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-xl flex items-start shadow-sm animate-bounce">
-            <span className="material-symbols-outlined mr-2">warning</span>
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-xl flex items-start animate-bounce shadow-sm">
+            <span className="material-symbols-outlined mr-2 text-xl">warning</span>
             <p className="text-sm font-bold">{error}</p>
           </div>
         )}
+
         <div className="bg-white p-8 sm:p-12 rounded-3xl shadow-xl border border-slate-100">
-          <form onSubmit={handleSubmit} className="space-y-10">
-            <div>
-              <h3 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
-                <span className="material-symbols-outlined text-blue-600">corporate_fare</span>
-                ข้อมูลนิติบุคคล (Corporate Info)
-              </h3>
+          {step === 1 ? (
+            <form onSubmit={handleNext} className="space-y-6">
               <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
                 <div className="sm:col-span-2">
-                  <label className="block text-sm font-medium text-slate-700 mb-1">ชื่อหน่วยงาน / ชื่อบริษัท <span className="text-red-500">*</span></label>
-                  <input type="text" name="organization-name" value={formData['organization-name']} onChange={handleChange} required className="block w-full rounded-xl border-slate-200 p-3 border bg-slate-50 outline-none focus:ring-2 focus:ring-blue-500 transition-all" placeholder="ระบุชื่อบริษัท/หน่วยงาน" />
+                  <label className="block text-sm font-medium text-slate-700 mb-1">ชื่อองค์กร (Organization Name) <span className="text-red-500">*</span></label>
+                  <input name="org_name" type="text" required value={formData.org_name} onChange={handleChange} className="block w-full rounded-xl border-slate-200 p-3 border bg-slate-50 outline-none focus:ring-2 focus:ring-blue-500 transition-all" placeholder="ชื่อบริษัท / ห้างหุ้นส่วน" />
                 </div>
+                
                 <div>
                   <TaxIdField 
-                    label="เลขประจำตัวผู้เสียภาษี (Tax ID)" 
-                    name="tax-id" 
-                    value={formData['tax-id']} 
-                    onChange={handleChange} 
+                    label="เลขประจำตัวผู้เสียภาษี (Tax ID)"
+                    name="tax_id"
+                    value={formData.tax_id}
+                    onChange={handleChange}
                     onValidationChange={setIsTaxIdAvailable}
+                    placeholder="13 หลัก"
                   />
                 </div>
+                
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">ประเภทธุรกิจ <span className="text-red-500">*</span></label>
-                  <select name="business-type" value={formData['business-type']} onChange={handleChange} required className="block w-full rounded-xl border-slate-200 p-3 border bg-slate-50 outline-none focus:ring-2 focus:ring-blue-500 transition-all">
-                    <option value="รัฐวิสาหกิจ/ราชการ">รัฐวิสาหกิจ/ราชการ</option>
-                    <option value="บริษัทจำกัด">บริษัทจำกัด</option>
-                    <option value="ห้างหุ้นส่วน">ห้างหุ้นส่วน</option>
-                    <option value="อื่นๆ">อื่นๆ</option>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">ประเภทธุรกิจ (Business Type) <span className="text-red-500">*</span></label>
+                  <select name="business_type" required value={formData.business_type} onChange={handleChange} className="block w-full rounded-xl border-slate-200 p-3 border bg-slate-50 outline-none focus:ring-2 focus:ring-blue-500 transition-all">
+                    <option value="">-- เลือกประเภทธุรกิจ --</option>
+                    <option value="architect">สถาปนิก (Architect)</option>
+                    <option value="engineer">วิศวกร (Engineer)</option>
+                    <option value="contractor">ผู้รับเหมา (Contractor)</option>
+                    <option value="developer">ผู้พัฒนาอสังหาริมทรัพย์ (Developer)</option>
+                    <option value="consultant">ที่ปรึกษา (Consultant)</option>
+                    <option value="government">หน่วยงานราชการ (Government)</option>
+                    <option value="education">สถาบันการศึกษา (Education)</option>
+                    <option value="software_vendor">ผู้จำหน่ายซอฟต์แวร์ (Software Vendor)</option>
+                    <option value="other">อื่นๆ (Other)</option>
                   </select>
                 </div>
+
                 <div className="sm:col-span-2">
-                  <label className="block text-sm font-medium text-slate-700 mb-1">ขอบเขตการดำเนินงาน (Business Scope)</label>
-                  <input type="text" name="business-scope" value={formData['business-scope']} onChange={handleChange} className="block w-full rounded-xl border-slate-200 p-3 border bg-slate-50 outline-none focus:ring-2 focus:ring-blue-500 transition-all" />
+                  <label className="block text-sm font-medium text-slate-700 mb-1">ขอบเขตธุรกิจ (Business Scope) <span className="text-red-500">*</span></label>
+                  <textarea name="business_scope" rows={2} required value={formData.business_scope} onChange={handleChange} className="block w-full rounded-xl border-slate-200 p-3 border bg-slate-50 outline-none focus:ring-2 focus:ring-blue-500 transition-all" placeholder="อธิบายลักษณะธุรกิจพอสังเขป"></textarea>
                 </div>
+
                 <div className="sm:col-span-2">
-                  <EmailField 
-                    label="อีเมลหน่วยงาน (Corporate Email)" 
-                    name="corporate-email" 
-                    value={formData['corporate-email']} 
-                    onChange={handleChange} 
-                    onValidationChange={setIsEmailAvailable}
-                    placeholder="example@company.com" 
+                   <EmailField 
+                    label="อีเมลองค์กร (Corporate Email)"
+                    name="corporate_email"
+                    value={formData.corporate_email}
+                    onChange={handleChange}
+                    onValidationChange={setIsCorporateEmailAvailable}
+                    placeholder="contact@company.com"
                   />
                 </div>
+
                 <div className="sm:col-span-2">
-                  <label className="block text-sm font-medium text-slate-700 mb-1">ที่อยู่นิติบุคคล (Corporate Address) <span className="text-red-500">*</span></label>
-                  <textarea name="corporate-address" rows={2} value={formData['corporate-address']} onChange={handleChange} required className="block w-full rounded-xl border-slate-200 p-3 border bg-slate-50 outline-none focus:ring-2 focus:ring-blue-500 transition-all"></textarea>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">ที่อยู่องค์กร (Corporate Address) <span className="text-red-500">*</span></label>
+                  <textarea name="corporate_address" rows={3} required value={formData.corporate_address} onChange={handleChange} className="block w-full rounded-xl border-slate-200 p-3 border bg-slate-50 outline-none focus:ring-2 focus:ring-blue-500 transition-all" placeholder="ที่อยู่จดทะเบียนบริษัท"></textarea>
                 </div>
+
                 <div className="sm:col-span-2">
-                  <label className="block text-sm font-medium text-slate-700 mb-1">หนังสือรับรองบริษัท (Company Certificate) <span className="text-red-500">*</span> <span className="text-slate-400 text-xs font-normal">(Max 10MB - PDF, Doc, Image, Zip)</span></label>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                    เอกสารที่ใช้ในการพิจารณา หนังสือรับรองบริษัท และ ภพ.20 <span className="text-red-500">*</span> 
+                    <span className="text-slate-400 text-xs font-normal ml-1">(ZIP/PDF/Image Max 10MB)</span>
+                  </label>
                   <input 
-                    name="company-certificate" 
+                    name="company_certificate" 
                     type="file" 
                     required 
-                    accept=".jpg,.jpeg,.png,.pdf,.doc,.docx,.zip"
+                    accept=".zip,.pdf,.jpg,.jpeg,.png"
                     onChange={handleChange} 
                     className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 transition-all cursor-pointer" 
                   />
                 </div>
               </div>
-            </div>
-
-            <div>
-              <h3 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
-                <span className="material-symbols-outlined text-blue-600">person</span>
-                ข้อมูลผู้แทน / ผู้ประสานงาน (Representative Info)
-              </h3>
-              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">ชื่อผู้แทน (First Name) <span className="text-red-500">*</span></label>
-                  <input type="text" name="representative-first-name" value={formData['representative-first-name']} onChange={handleChange} required className="block w-full rounded-xl border-slate-200 p-3 border bg-slate-50 outline-none focus:ring-2 focus:ring-blue-500 transition-all" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">นามสกุลผู้แทน (Last Name) <span className="text-red-500">*</span></label>
-                  <input type="text" name="representative-last-name" value={formData['representative-last-name']} onChange={handleChange} required className="block w-full rounded-xl border-slate-200 p-3 border bg-slate-50 outline-none focus:ring-2 focus:ring-blue-500 transition-all" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">เลขบัตรประชาชน / Passport ID <span className="text-red-500">*</span></label>
-                  <input type="text" name="national-id" value={formData['national-id']} onChange={handleChange} required className="block w-full rounded-xl border-slate-200 p-3 border bg-slate-50 outline-none focus:ring-2 focus:ring-blue-500 transition-all" />
-                </div>
-                <div>
-                  <PhoneField 
-                    label="เบอร์โทรศัพท์ติดต่อ" 
-                    name="representative-phone" 
-                    value={formData['representative-phone']} 
-                    onChange={handleChange} 
-                    onValidationChange={setIsRepPhoneAvailable}
-                    placeholder="เฉพาะตัวเลขเท่านั้น"
-                  />
-                </div>
-                <div className="sm:col-span-2">
-                  <EmailField 
-                    label="อีเมลผู้แทน (Representative Email)" 
-                    name="representative-email" 
-                    value={formData['representative-email']} 
-                    onChange={handleChange} 
-                    onValidationChange={setIsRepEmailAvailable}
-                  />
-                </div>
-                <div className="sm:col-span-2">
-                  <label className="block text-sm font-medium text-slate-700 mb-1">ที่อยู่ผู้แทน (Representative Address) <span className="text-red-500">*</span></label>
-                  <textarea name="representative-address" rows={2} value={formData['representative-address']} onChange={handleChange} required className="block w-full rounded-xl border-slate-200 p-3 border bg-slate-50 outline-none focus:ring-2 focus:ring-blue-500 transition-all"></textarea>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">รหัสผ่าน (ขั้นต่ำ 8 ตัวอักษร) <span className="text-red-500">*</span></label>
-                  <input type="password" name="password" value={formData.password} onChange={handleChange} required minLength={8} className="block w-full rounded-xl border-slate-200 p-3 border bg-slate-50 outline-none focus:ring-2 focus:ring-blue-500 transition-all" placeholder="••••••••" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">ยืนยันรหัสผ่าน <span className="text-red-500">*</span></label>
-                  <input type="password" name="confirm-password" value={formData['confirm-password']} onChange={handleChange} required minLength={8} className="block w-full rounded-xl border-slate-200 p-3 border bg-slate-50 outline-none focus:ring-2 focus:ring-blue-500 transition-all" placeholder="••••••••" />
+              
+              <button 
+                type="submit" 
+                className="w-full py-4 bg-blue-600 text-white font-bold rounded-xl shadow-lg hover:bg-blue-700 transform hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2"
+              >
+                ขั้นตอนถัดไป (ข้อมูลผู้แทน)
+                <span className="material-symbols-outlined">arrow_forward</span>
+              </button>
+            </form>
+          ) : (
+            <form onSubmit={handleSubmit} className="space-y-8">
+              {/* Representative Info */}
+              <div>
+                <h3 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
+                  <span className="material-symbols-outlined text-blue-600">badge</span>
+                  ข้อมูลผู้แทนองค์กร (Representative Info)
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                   <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1">ชื่อผู้แทน (Name) <span className="text-red-500">*</span></label>
+                      <input name="rep_name" type="text" required value={formData.rep_name} onChange={handleChange} className="block w-full rounded-xl border-slate-200 p-3 border bg-slate-50 outline-none focus:ring-2 focus:ring-blue-500" />
+                   </div>
+                   <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1">นามสกุลผู้แทน (Surname) <span className="text-red-500">*</span></label>
+                      <input name="rep_surname" type="text" required value={formData.rep_surname} onChange={handleChange} className="block w-full rounded-xl border-slate-200 p-3 border bg-slate-50 outline-none focus:ring-2 focus:ring-blue-500" />
+                   </div>
+                   <div className="sm:col-span-2">
+                      <label className="block text-sm font-medium text-slate-700 mb-1">เลขบัตรประชาชนผู้แทน (National ID) <span className="text-red-500">*</span></label>
+                      <input name="rep_national_id" type="text" required pattern="\d{13}" maxLength={13} value={formData.rep_national_id} onChange={handleChange} className="block w-full rounded-xl border-slate-200 p-3 border bg-slate-50 outline-none focus:ring-2 focus:ring-blue-500" placeholder="13 หลัก" />
+                   </div>
+                   
+                   <div>
+                      <PhoneField 
+                        label="เบอร์โทรศัพท์ผู้แทน"
+                        name="rep_phone"
+                        value={formData.rep_phone}
+                        onChange={handleChange}
+                        onValidationChange={setIsRepPhoneAvailable}
+                        placeholder="0xxxxxxxxx"
+                      />
+                   </div>
+                   <div>
+                      <EmailField 
+                        label="อีเมลผู้แทน (Representative Email)"
+                        name="rep_email"
+                        value={formData.rep_email}
+                        onChange={handleChange}
+                        onValidationChange={setIsRepEmailAvailable}
+                        placeholder="person@company.com"
+                      />
+                   </div>
+                   
+                   <div className="sm:col-span-2">
+                      <label className="block text-sm font-medium text-slate-700 mb-1">ที่อยู่ผู้แทน (Contact Address) <span className="text-red-500">*</span></label>
+                      <textarea name="rep_address" rows={2} required value={formData.rep_address} onChange={handleChange} className="block w-full rounded-xl border-slate-200 p-3 border bg-slate-50 outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                   </div>
                 </div>
               </div>
-            </div>
 
-            <SecurityQuestionsSection 
-              value={formData['security-question']} 
-              answer={formData['security-answer']} 
-              onChange={handleChange} 
-              questionName="security-question"
-              answerName="security-answer"
-            />
-            <PDPASection checked={formData['pdpa-consent']} onChange={handleChange} name="pdpa-consent" onOpenPrivacy={() => setShowPrivacy(true)} />
+              {/* Account Settings */}
+              <div className="pt-6 border-t border-slate-100">
+                <h3 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
+                  <span className="material-symbols-outlined text-blue-600">lock</span>
+                  ตั้งค่าบัญชีผู้ใช้ (Account Settings)
+                </h3>
+                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">รหัสผ่าน (Password - ขั้นต่ำ 8 ตัวอักษร) <span className="text-red-500">*</span></label>
+                    <input name="password" type="password" required minLength={8} value={formData.password} onChange={handleChange} className="block w-full rounded-xl border-slate-200 p-3 border bg-slate-50 outline-none focus:ring-2 focus:ring-blue-500" placeholder="••••••••" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">ยืนยันรหัสผ่าน (Confirm Password) <span className="text-red-500">*</span></label>
+                    <input name="confirm_password" type="password" required minLength={8} value={formData.confirm_password} onChange={handleChange} className="block w-full rounded-xl border-slate-200 p-3 border bg-slate-50 outline-none focus:ring-2 focus:ring-blue-500" placeholder="••••••••" />
+                  </div>
+                </div>
+              </div>
 
-            <div className="flex justify-between items-center pt-8 border-t border-slate-100">
-               <button type="button" onClick={() => setView(ViewState.LANDING)} className="px-8 py-3 text-slate-500 font-bold hover:text-slate-800 hover:bg-slate-50 rounded-xl transition-all" disabled={loading}>ยกเลิก</button>
-               <button 
-                type="submit" 
-                disabled={loading} 
-                className="px-10 py-3 bg-blue-600 text-white font-bold rounded-xl shadow-lg disabled:bg-slate-400 hover:bg-blue-700 transform hover:-translate-y-0.5 transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
-               >
-                 {loading ? (
-                   <>
-                    <span className="material-symbols-outlined animate-spin text-sm">sync</span>
-                    กำลังดำเนินการ...
-                   </>
-                 ) : (
-                   <>
-                    <span className="material-symbols-outlined text-sm">how_to_reg</span>
-                    ลงทะเบียนนิติบุคคล
-                   </>
-                 )}
-               </button>
-            </div>
-          </form>
+              <SecurityQuestionsSection value={formData.security_question} answer={formData.security_answer} onChange={handleChange} />
+              <PDPASection checked={formData.pdpa_consent} onChange={handleChange} onOpenPrivacy={() => setShowPrivacy(true)} />
+
+              <div className="flex justify-between items-center pt-8 border-t border-slate-100">
+                 <button type="button" onClick={() => setStep(1)} className="px-8 py-3 text-slate-500 font-bold hover:text-slate-800 hover:bg-slate-50 rounded-xl transition-all flex items-center gap-1">
+                   <span className="material-symbols-outlined">arrow_back</span>
+                   ย้อนกลับ
+                 </button>
+                 <button 
+                  type="submit" 
+                  disabled={loading} 
+                  className="px-10 py-3 bg-blue-600 text-white font-bold rounded-xl shadow-lg disabled:bg-slate-400 hover:bg-blue-700 transform hover:-translate-y-0.5 transition-all flex items-center gap-2"
+                 >
+                   {loading ? (
+                     <>
+                       <span className="material-symbols-outlined animate-spin">sync</span>
+                       กำลังดำเนินการ...
+                     </>
+                   ) : (
+                     <>
+                       <span className="material-symbols-outlined">how_to_reg</span>
+                       ยืนยันการลงทะเบียน
+                     </>
+                   )}
+                 </button>
+              </div>
+            </form>
+          )}
         </div>
       </div>
     </div>

@@ -26,6 +26,8 @@ function App() {
         return <Landing setView={setCurrentView} />;
       case ViewState.REGISTER_LOCAL:
         return <RegisterLocal setView={setCurrentView} onSuccess={(d) => handleRegistrationSuccess(d, false)} />;
+      case ViewState.REGISTER_LOCAL_STUDENT:
+        return <RegisterLocal setView={setCurrentView} onSuccess={(d) => handleRegistrationSuccess(d, false)} defaultStudent={true} />;
       case ViewState.REGISTER_FOREIGN:
         return <RegisterForeign setView={setCurrentView} onSuccess={(d) => handleRegistrationSuccess(d, true)} />;
       case ViewState.REGISTER_CORPORATE:

@@ -7,13 +7,6 @@ interface LandingProps {
 }
 
 export const Landing: React.FC<LandingProps> = ({ setView }) => {
-  const scrollToRegister = () => {
-    const element = document.getElementById('register-section');
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
-    }
-  };
-
   return (
     <div className="bg-slate-50 font-sans">
       {/* Hero / Info Section */}
@@ -77,7 +70,23 @@ export const Landing: React.FC<LandingProps> = ({ setView }) => {
                 </div>
                 ประเภทของสมาชิกและอัตราค่าสมัคร
             </h2>
-            <p className="text-slate-600 mb-6 ml-14">สมาชิกของสมาคมฯ มี 2 ประเภท</p>
+            <p className="text-slate-600 mb-4 ml-14">สมาชิกของสมาคมฯ มี 2 ประเภท</p>
+            
+            {/* Fee Policy Alert */}
+            <div className="ml-0 md:ml-14 mb-8 p-4 bg-indigo-50 border border-indigo-100 rounded-xl flex items-start gap-3 shadow-sm">
+               <div className="flex-shrink-0 p-1.5 bg-indigo-100 rounded-full text-indigo-600 mt-0.5">
+                  <span className="material-symbols-outlined text-sm font-bold">campaign</span>
+               </div>
+               <div>
+                  <h4 className="font-bold text-indigo-900 text-base mb-1">นโยบายค่าธรรมเนียม (Fee Policy)</h4>
+                  <p className="text-indigo-800 text-sm leading-relaxed font-medium">
+                    คงการงดเว้นค่าสมาชิกรายปีตามมติที่ประชุมใหญ่
+                  </p>
+                  <p className="text-indigo-800/80 text-xs leading-relaxed font-medium mt-1">
+                    Annual membership fee waiver maintained as per the General Meeting resolution.
+                  </p>
+               </div>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-12">
@@ -88,7 +97,7 @@ export const Landing: React.FC<LandingProps> = ({ setView }) => {
                     <div className="absolute -top-24 -right-24 w-64 h-64 bg-blue-500 rounded-full blur-[80px] opacity-20 group-hover:opacity-30 transition-opacity"></div>
                     <div className="absolute bottom-0 left-0 w-full h-1/2 bg-gradient-to-t from-black/50 to-transparent"></div>
                     
-                    <div className="relative z-10">
+                    <div className="relative z-10 flex flex-col h-full">
                         <div className="w-14 h-14 bg-white/10 rounded-2xl flex items-center justify-center mb-6 backdrop-blur-md border border-white/10">
                             <span className="material-symbols-outlined text-3xl text-blue-300">corporate_fare</span>
                         </div>
@@ -109,6 +118,14 @@ export const Landing: React.FC<LandingProps> = ({ setView }) => {
                                     <span className="text-xl font-bold text-blue-300">12,000 <span className="text-sm font-normal text-blue-300/70">บาท</span></span>
                                 </div>
                             </div>
+
+                            <button 
+                                onClick={() => setView(ViewState.REGISTER_CORPORATE)}
+                                className="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl shadow-lg shadow-blue-900/20 transition-all flex items-center justify-center gap-2 group-hover:shadow-blue-600/20"
+                            >
+                                <span>สมัครสมาชิกนิติบุคคล</span>
+                                <span className="material-symbols-outlined text-sm">arrow_forward</span>
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -139,8 +156,8 @@ export const Landing: React.FC<LandingProps> = ({ setView }) => {
                             </div>
                         </div>
 
-                        {/* Ordinary */}
-                        <div className="bg-slate-50 rounded-2xl p-5 border border-slate-100 hover:border-indigo-200 transition-colors group">
+                        {/* Ordinary - Updated with button */}
+                        <div className="bg-slate-50 rounded-2xl p-5 border border-slate-100 hover:border-indigo-200 transition-colors group flex flex-col">
                             <div className="flex items-start gap-3 mb-2">
                                 <div className="p-2 bg-indigo-100 text-indigo-700 rounded-lg group-hover:bg-indigo-600 group-hover:text-white transition-colors">
                                     <span className="material-symbols-outlined text-xl">engineering</span>
@@ -152,33 +169,55 @@ export const Landing: React.FC<LandingProps> = ({ setView }) => {
                             <p className="text-xs text-slate-500 mb-3 leading-relaxed h-[4.5rem]">
                                 ได้แก่ บุคคลที่จบการศึกษาในระดับประกาศนียบัตรวิชาชีพชั้นสูง ปริญญาตรี หรือสูงกว่า ในสาขาที่เกี่ยวข้องกับการอุตสาหกรรมการก่อสร้ง และจัดการอาคาร
                             </p>
-                            <div className="flex flex-col gap-1 text-right">
-                                <div className="text-xs text-slate-700 font-medium">รายปี <span className="font-bold text-indigo-700">400</span> บาท</div>
-                                <div className="text-xs text-slate-700 font-medium">ราย 3 ปี <span className="font-bold text-indigo-700">1,000</span> บาท</div>
+                            <div className="mt-auto">
+                                <div className="flex flex-col gap-1 text-right mb-3">
+                                    <div className="text-xs text-slate-700 font-medium">รายปี <span className="font-bold text-indigo-700">400</span> บาท</div>
+                                    <div className="text-xs text-slate-700 font-medium">ราย 3 ปี <span className="font-bold text-indigo-700">1,000</span> บาท</div>
+                                </div>
+                                <button 
+                                    onClick={() => setView(ViewState.REGISTER_LOCAL)}
+                                    className="w-full py-2 bg-indigo-100 hover:bg-indigo-200 text-indigo-800 text-xs font-bold rounded-lg shadow-sm transition-all flex items-center justify-center gap-1 active:transform active:scale-95 border border-indigo-200"
+                                >
+                                    <span className="material-symbols-outlined text-sm">how_to_reg</span>
+                                    <span>สมัครสมาชิกสามัญ (ทำงาน)</span>
+                                </button>
                             </div>
                         </div>
 
-                        {/* Extraordinary */}
-                        <div className="bg-slate-50 rounded-2xl p-5 border border-slate-100 hover:border-emerald-200 transition-colors group">
+                        {/* Extraordinary (Foreigner) */}
+                        <div className="bg-slate-50 rounded-2xl p-5 border border-slate-100 hover:border-emerald-200 transition-colors group flex flex-col">
                             <div className="flex items-start gap-3 mb-2">
                                 <div className="p-2 bg-emerald-100 text-emerald-700 rounded-lg group-hover:bg-emerald-600 group-hover:text-white transition-colors">
                                     <span className="material-symbols-outlined text-xl">public</span>
                                 </div>
                                 <div>
                                     <h4 className="font-bold text-slate-900 text-base">2.3 สมาชิกวิสามัญ</h4>
+                                    <span className="text-xs text-emerald-600 font-medium block">(Extraordinary / Foreign Member)</span>
                                 </div>
                             </div>
-                            <p className="text-xs text-slate-500 mb-3 leading-relaxed h-[4.5rem]">
+                            <p className="text-xs text-slate-500 mb-2 leading-relaxed">
                                 ได้แก่ บุคคลที่เกี่ยวข้องกับวงการอุตสาหกรรมก่อสร้างและห่วงโซ่อุตสาหกรรม บุคคลต่างชาติที่ทำงานที่เกี่ยวข้อง
                             </p>
-                            <div className="flex flex-col gap-1 text-right">
-                                <div className="text-xs text-slate-700 font-medium">รายปี <span className="font-bold text-emerald-700">300</span> บาท</div>
-                                <div className="text-xs text-slate-700 font-medium">ราย 3 ปี <span className="font-bold text-emerald-700">750</span> บาท</div>
+                            <p className="text-[10px] text-slate-400 mb-3 leading-relaxed italic border-t border-slate-200 pt-2 mt-auto">
+                                For individuals involved in the construction industry, including foreign nationals working in related fields.
+                            </p>
+                            <div className="mt-auto">
+                                <div className="flex flex-col gap-1 text-right mb-3">
+                                    <div className="text-xs text-slate-700 font-medium">รายปี (Annual) <span className="font-bold text-emerald-700">300</span> THB</div>
+                                    <div className="text-xs text-slate-700 font-medium">ราย 3 ปี (3 Years) <span className="font-bold text-emerald-700">750</span> THB</div>
+                                </div>
+                                <button 
+                                    onClick={() => setView(ViewState.REGISTER_FOREIGN)}
+                                    className="w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg shadow-sm transition-all flex items-center justify-center gap-1 active:transform active:scale-95"
+                                >
+                                    <span className="material-symbols-outlined text-sm">how_to_reg</span>
+                                    <span>Register (Foreign Member)</span>
+                                </button>
                             </div>
                         </div>
 
                         {/* Associate */}
-                        <div className="bg-slate-50 rounded-2xl p-5 border border-slate-100 hover:border-orange-200 transition-colors group">
+                        <div className="bg-slate-50 rounded-2xl p-5 border border-slate-100 hover:border-orange-200 transition-colors group flex flex-col">
                             <div className="flex items-start gap-3 mb-2">
                                 <div className="p-2 bg-orange-100 text-orange-700 rounded-lg group-hover:bg-orange-600 group-hover:text-white transition-colors">
                                     <span className="material-symbols-outlined text-xl">school</span>
@@ -190,80 +229,22 @@ export const Landing: React.FC<LandingProps> = ({ setView }) => {
                             <p className="text-xs text-slate-500 mb-3 leading-relaxed h-[4.5rem]">
                                 ได้แก่ บุคคลที่เป็นนักศึกษาในสาขาวิชาที่เกี่ยวข้องของสมาคม
                             </p>
-                            <div className="mt-auto text-right pt-4">
-                                <div className="text-xs text-slate-700 font-medium">รายปี <span className="font-bold text-orange-700">100</span> บาท</div>
+                            <div className="mt-auto pt-2">
+                                <div className="text-right text-xs text-slate-700 font-medium mb-3">รายปี <span className="font-bold text-orange-700">100</span> บาท</div>
+                                <button 
+                                    onClick={() => setView(ViewState.REGISTER_LOCAL_STUDENT)}
+                                    className="w-full py-2 bg-orange-100 hover:bg-orange-200 text-orange-800 text-xs font-bold rounded-lg shadow-sm transition-all flex items-center justify-center gap-1 active:transform active:scale-95 border border-orange-200"
+                                >
+                                    <span className="material-symbols-outlined text-sm">how_to_reg</span>
+                                    <span>สมัครสมาชิกสมทบ (นักศึกษา)</span>
+                                </button>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
           </div>
-          
-          <div className="flex justify-center">
-             <button 
-                onClick={scrollToRegister}
-                className="animate-bounce flex flex-col items-center text-slate-400 hover:text-primary-600 transition-colors"
-             >
-                <span className="text-sm font-medium mb-1">สมัครสมาชิก</span>
-                <span className="material-symbols-outlined">keyboard_arrow_down</span>
-             </button>
-          </div>
 
-        </div>
-      </div>
-
-      {/* Registration Selection */}
-      <div id="register-section" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 bg-slate-50 border-t border-slate-200">
-        <div className="text-center mb-16">
-          <h2 className="text-3xl font-bold text-slate-900 mb-4">เลือกเพื่อสมัครสมาชิก</h2>
-          <div className="h-1.5 w-20 bg-primary-500 mx-auto rounded-full"></div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-          {/* Card 1: Local (Thai) */}
-          <div className="group relative bg-white rounded-3xl shadow-sm hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 border border-slate-100 p-8 flex flex-col">
-            <div className="w-14 h-14 bg-indigo-50 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-indigo-600 group-hover:text-white transition-all duration-300">
-              <span className="material-symbols-outlined text-3xl">person</span>
-            </div>
-            <h3 className="text-2xl font-bold text-slate-900 mb-2">บุคคลทั่วไป (ไทย)</h3>
-            <p className="text-slate-500 text-sm mb-8">สำหรับสมาชิกสามัญ และสมาชิกสมทบ</p>
-            <button 
-              onClick={() => setView(ViewState.REGISTER_LOCAL)}
-              className="w-full py-4 bg-indigo-50 text-indigo-700 font-bold rounded-xl group-hover:bg-indigo-600 group-hover:text-white transition-all shadow-sm mt-auto"
-            >
-              สมัครสมาชิกรายบุคคล
-            </button>
-          </div>
-
-          {/* Card 2: Foreigner */}
-          <div className="group relative bg-white rounded-3xl shadow-sm hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 border border-slate-100 p-8 flex flex-col">
-            <div className="w-14 h-14 bg-emerald-50 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-emerald-600 group-hover:text-white transition-all duration-300">
-              <span className="material-symbols-outlined text-3xl">public</span>
-            </div>
-            <h3 className="text-2xl font-bold text-slate-900 mb-2">Foreign Member</h3>
-            <p className="text-slate-500 text-sm mb-8">For Extraordinary Members (Foreign Nationals)</p>
-            <button 
-              onClick={() => setView(ViewState.REGISTER_FOREIGN)}
-              className="w-full py-4 bg-emerald-50 text-emerald-700 font-bold rounded-xl group-hover:bg-emerald-600 group-hover:text-white transition-all shadow-sm mt-auto"
-            >
-              Register as Foreigner
-            </button>
-          </div>
-
-          {/* Card 3: Corporate */}
-          <div className="group relative bg-white rounded-3xl shadow-sm hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 border border-slate-100 p-8 flex flex-col">
-            <div className="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-blue-600 group-hover:text-white transition-all duration-300">
-              <span className="material-symbols-outlined text-3xl">corporate_fare</span>
-            </div>
-            <h3 className="text-2xl font-bold text-slate-900 mb-2">สมาชิกนิติบุคคล</h3>
-            <p className="text-slate-500 text-sm mb-8">สำหรับองค์กร บริษัท ห้างร้าน และหน่วยงานราชการ</p>
-            <button 
-              onClick={() => setView(ViewState.REGISTER_CORPORATE)}
-              className="w-full py-4 bg-blue-50 text-blue-700 font-bold rounded-xl group-hover:bg-blue-600 group-hover:text-white transition-all shadow-sm mt-auto"
-            >
-              สมัครสมาชิกนิติบุคคล
-            </button>
-          </div>
         </div>
       </div>
     </div>
