@@ -11,5 +11,5 @@ export const API_ENDPOINTS = {
   // Registration Endpoints
   REGISTER_LOCAL: `${API_BASE_URL}/memberlocal/register`,
   REGISTER_FOREIGN: `${API_BASE_URL}/memberforeign/register`,
-  REGISTER_CORPORATE: `${API_BASE_URL}/membercorporate/register`,
+  REGISTER_CORPORATE: `${API_BASE_URL}/membercorporate/register`, 
 };
