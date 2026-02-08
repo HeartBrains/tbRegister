@@ -981,7 +981,7 @@ export const RegisterForeign: React.FC<RegProps> = ({ setView, onSuccess }) => {
       payload.append('password', formData.password);
       payload.append('confirm-password', formData.confirm_password);
       payload.append('security-question', formData.security_question);
-      payload.append('security_answer', formData.security_answer);
+      payload.append('security-answer', formData.security_answer);
       payload.append('account_status', 'pending');
       payload.append('pdpa-consent', formData.pdpa_consent ? '1' : '0'); 
       
@@ -1195,6 +1195,9 @@ export const RegisterCorporate: React.FC<RegProps> = ({ setView, onSuccess }) =>
   
   const [showPrivacy, setShowPrivacy] = useState(false);
 
+  // New state for handling the select dropdown separately from the text input
+  const [selectedBusinessType, setSelectedBusinessType] = useState('');
+
   const [formData, setFormData] = useState({
     // Organization Info
     org_name: '',
@@ -1391,7 +1394,21 @@ export const RegisterCorporate: React.FC<RegProps> = ({ setView, onSuccess }) =>
                 
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">ประเภทธุรกิจ (Business Type) <span className="text-red-500">*</span></label>
-                  <select name="business_type" required value={formData.business_type} onChange={handleChange} className="block w-full rounded-xl border-slate-200 p-3 border bg-slate-50 outline-none focus:ring-2 focus:ring-blue-500 transition-all">
+                  <select 
+                    name="business_type_select" 
+                    required 
+                    value={selectedBusinessType} 
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setSelectedBusinessType(val);
+                      if (val !== 'other') {
+                        setFormData(prev => ({ ...prev, business_type: val }));
+                      } else {
+                        setFormData(prev => ({ ...prev, business_type: '' }));
+                      }
+                    }} 
+                    className="block w-full rounded-xl border-slate-200 p-3 border bg-slate-50 outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                  >
                     <option value="">-- เลือกประเภทธุรกิจ --</option>
                     <option value="architect">สถาปนิก (Architect)</option>
                     <option value="engineer">วิศวกร (Engineer)</option>
@@ -1403,6 +1420,21 @@ export const RegisterCorporate: React.FC<RegProps> = ({ setView, onSuccess }) =>
                     <option value="software_vendor">ผู้จำหน่ายซอฟต์แวร์ (Software Vendor)</option>
                     <option value="other">อื่นๆ (Other)</option>
                   </select>
+                  
+                  {selectedBusinessType === 'other' && (
+                    <div className="mt-3 animate-in fade-in slide-in-from-top-2 duration-300">
+                      <label className="block text-sm font-medium text-slate-700 mb-1">ระบุประเภทธุรกิจ (Please Specify) <span className="text-red-500">*</span></label>
+                      <input 
+                        type="text" 
+                        name="business_type" 
+                        required 
+                        value={formData.business_type} 
+                        onChange={handleChange} 
+                        className="block w-full rounded-xl border-slate-200 p-3 border bg-slate-50 outline-none focus:ring-2 focus:ring-blue-500 transition-all" 
+                        placeholder="เช่น ผู้ผลิตวัสดุก่อสร้าง, นิติบุคคลอาคารชุด ฯลฯ" 
+                      />
+                    </div>
+                  )}
                 </div>
 
                 <div className="sm:col-span-2">
